@@ -41,6 +41,14 @@ export class TelemetryTracker {
   // ── Auto-detected compile/run (via VS Code task system) ──────────────────
   private autoCompileAttempts: number = 0;
 
+  // ── Terminal output streaming (Shell Integration, command-scoped) ──────────
+  // We stream the output of each command execution using execution.read().
+  // This is command-scoped so we know exactly what type of command produced
+  // the output (compile vs run). Works whenever shell integration is active.
+  private lastTerminalCommandType: 'compile' | 'run' | null = null;
+  private lastTerminalCommandTime: number = 0;
+  private static readonly TERMINAL_DEDUP_MS = 1500;
+
   // ── Same-error-repeated tracking ─────────────────────────────────────────
   private lastErrorMessage: string = '';
   private currentErrorStreak: number = 0;
@@ -95,12 +103,15 @@ export class TelemetryTracker {
       )
     );
 
-    // Task/debug process starts (auto-detected compile/run)
+    // Task/debug process starts (auto-detected compile/run via VS Code tasks panel)
     this.disposables.push(
       vscode.tasks.onDidStartTaskProcess((e) => this.onTaskStart(e))
     );
 
-    // Auto-detect compile/run via terminal shell execution (VS Code 1.96.0+)
+    // ── Approach 1: Shell Integration (VS Code 1.93+, requires shell to support it)
+    // Works automatically when shell integration is injected. Gives us the
+    // exact exit code for any command. May silently not fire on some Windows
+    // setups — Approach 2 is the fallback.
     if (vscode.window.onDidEndTerminalShellExecution) {
       this.disposables.push(
         vscode.window.onDidEndTerminalShellExecution((e) =>
@@ -108,6 +119,18 @@ export class TelemetryTracker {
         )
       );
     }
+
+    // ── Approach 2: Stream command output via execution.read()
+    // When shell integration fires onDidStartTerminalShellExecution, we read
+    // the output stream for that specific command and scan it for error patterns.
+    if (vscode.window.onDidStartTerminalShellExecution) {
+      this.disposables.push(
+        vscode.window.onDidStartTerminalShellExecution((e) =>
+          this.onTerminalExecutionStart(e)
+        )
+      );
+    }
+
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -222,7 +245,11 @@ export class TelemetryTracker {
     });
   }
 
-  /** Handle terminal command execution endings (Shell Integration) */
+  /**
+   * Approach 1: Shell Integration exit-code handler.
+   * Only fires when the terminal's shell integration script is injected.
+   * On Windows with PowerShell this may not fire — Approach 2 is the fallback.
+   */
   private onTerminalExecutionEnd(e: vscode.TerminalShellExecutionEndEvent): void {
     const cmd = e.execution.commandLine.value.toLowerCase().trim();
     const exitCode = e.exitCode;
@@ -230,8 +257,120 @@ export class TelemetryTracker {
       return;
     }
 
-    // Compile commands keywords
-    const isCompile =
+    const isCompile = this.isCompileCommand(cmd);
+    const isRun = this.isRunCommand(cmd);
+
+    if (!isCompile && !isRun) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - this.lastTerminalCommandTime < TelemetryTracker.TERMINAL_DEDUP_MS) {
+      return; // Already recorded via Approach 2
+    }
+    this.lastTerminalCommandTime = now;
+
+    if (isCompile) {
+      exitCode === 0 ? this.recordCompileSuccess() : this.recordCompileError(
+        `${e.execution.commandLine.value} (exit ${exitCode})`
+      );
+    } else {
+      exitCode === 0 ? this.recordSuccessfulRun() : this.recordRuntimeError(
+        `${e.execution.commandLine.value} (exit ${exitCode})`
+      );
+    }
+  }
+
+  /**
+   * Approach 1 (start): Streams command output via execution.read() to detect
+   * error/success patterns from compiler/runtime output text.
+   */
+  private onTerminalExecutionStart(e: vscode.TerminalShellExecutionStartEvent): void {
+    const cmd = e.execution.commandLine.value.toLowerCase().trim();
+    const isCompile = this.isCompileCommand(cmd);
+    const isRun = this.isRunCommand(cmd);
+
+    if (!isCompile && !isRun) {
+      return;
+    }
+
+    const cmdType: 'compile' | 'run' = isCompile ? 'compile' : 'run';
+
+    // Stream the output of this specific command execution
+    void this.streamExecutionOutput(e.execution, cmdType);
+  }
+
+  /**
+   * Reads the output stream of a command execution and scans for
+   * error/success patterns. Fires the appropriate telemetry event.
+   */
+  private async streamExecutionOutput(
+    execution: vscode.TerminalShellExecution,
+    cmdType: 'compile' | 'run'
+  ): Promise<void> {
+    let outputBuffer = '';
+    try {
+      for await (const chunk of execution.read()) {
+        outputBuffer += chunk;
+        // Cap buffer size
+        if (outputBuffer.length > 4000) {
+          outputBuffer = outputBuffer.slice(-4000);
+        }
+      }
+    } catch {
+      // Stream ended or terminal closed — use whatever we collected
+    }
+
+    const now = Date.now();
+    if (now - this.lastTerminalCommandTime < TelemetryTracker.TERMINAL_DEDUP_MS) {
+      return; // Already recorded via shell integration end event
+    }
+
+    const buf = outputBuffer.toLowerCase();
+    const hasError = this.bufferHasError(buf, cmdType);
+
+    this.lastTerminalCommandTime = now;
+    if (cmdType === 'compile') {
+      hasError ? this.recordCompileError('auto-detected from output') : this.recordCompileSuccess();
+    } else {
+      hasError ? this.recordRuntimeError('auto-detected from output') : this.recordSuccessfulRun();
+    }
+  }
+
+  /**
+   * Scan a terminal output buffer string for known error patterns.
+   * Covers C++, Python, Java, Node.js, Rust, and generic patterns.
+   */
+  private bufferHasError(buf: string, cmdType: 'compile' | 'run'): boolean {
+    if (cmdType === 'compile') {
+      return (
+        buf.includes('error:') ||
+        buf.includes(': error c') ||          // MSVC
+        buf.includes('compilation failed') ||
+        buf.includes('build failed') ||
+        buf.includes('syntaxerror') ||         // Python
+        buf.includes('nameerror') ||           // Python
+        buf.includes('cannot find symbol') ||  // Java
+        buf.includes('^~~~') ||                // clang
+        buf.includes('^---')
+      );
+    } else {
+      return (
+        buf.includes('traceback (most recent call last)') || // Python
+        buf.includes('exception in thread') ||               // Java
+        buf.includes('segmentation fault') ||
+        buf.includes('segfault') ||
+        buf.includes('uncaughtexception') ||                 // Node.js
+        buf.includes('error: panicked') ||                   // Rust
+        buf.includes('aborted (core dumped)')
+      );
+    }
+  }
+
+  // ── Command classifier helpers ────────────────────────────────────────────
+
+  private isCompileCommand(cmd: string): boolean {
+    return (
       cmd.startsWith('g++') ||
       cmd.startsWith('gcc') ||
       cmd.startsWith('clang') ||
@@ -239,10 +378,14 @@ export class TelemetryTracker {
       cmd.includes('cargo build') ||
       cmd.includes('npm run build') ||
       cmd.startsWith('make') ||
-      cmd.startsWith('cmake');
+      cmd.startsWith('cmake') ||
+      cmd.startsWith('msbuild') ||
+      cmd.startsWith('cl ')
+    );
+  }
 
-    // Run commands keywords
-    const isRun =
+  private isRunCommand(cmd: string): boolean {
+    return (
       cmd.includes('./a.out') ||
       cmd.includes('./a.exe') ||
       cmd.includes('.\\a.exe') ||
@@ -250,25 +393,12 @@ export class TelemetryTracker {
       cmd.includes('.\\main') ||
       cmd.startsWith('python') ||
       cmd.startsWith('python3') ||
-      cmd.startsWith('node') ||
+      cmd.startsWith('node ') ||
       cmd.startsWith('java ') ||
       cmd.includes('cargo run') ||
       cmd.includes('npm start') ||
-      cmd.includes('npm run start');
-
-    if (isCompile) {
-      if (exitCode === 0) {
-        this.recordCompileSuccess();
-      } else {
-        this.recordCompileError(`Command: ${e.execution.commandLine.value} (exit code ${exitCode})`);
-      }
-    } else if (isRun) {
-      if (exitCode === 0) {
-        this.recordSuccessfulRun();
-      } else {
-        this.recordRuntimeError(`Command: ${e.execution.commandLine.value} (exit code ${exitCode})`);
-      }
-    }
+      cmd.includes('npm run start')
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
