@@ -371,16 +371,16 @@ export class TelemetryTracker {
 
   private isCompileCommand(cmd: string): boolean {
     return (
-      cmd.startsWith('g++') ||
-      cmd.startsWith('gcc') ||
-      cmd.startsWith('clang') ||
-      cmd.startsWith('javac') ||
+      cmd.includes('g++') ||
+      cmd.includes('gcc ') ||
+      cmd.includes('clang ') ||
+      cmd.includes('javac ') ||
       cmd.includes('cargo build') ||
       cmd.includes('npm run build') ||
-      cmd.startsWith('make') ||
-      cmd.startsWith('cmake') ||
-      cmd.startsWith('msbuild') ||
-      cmd.startsWith('cl ')
+      cmd.includes('make') ||
+      cmd.includes('cmake') ||
+      cmd.includes('msbuild') ||
+      cmd.includes(' cl ')
     );
   }
 
@@ -391,10 +391,12 @@ export class TelemetryTracker {
       cmd.includes('.\\a.exe') ||
       cmd.includes('.\\main.exe') ||
       cmd.includes('.\\main') ||
-      cmd.startsWith('python') ||
-      cmd.startsWith('python3') ||
-      cmd.startsWith('node ') ||
-      cmd.startsWith('java ') ||
+      cmd.includes('\\test') ||           // covers .\test, .\test.exe
+      cmd.includes('./test') ||
+      cmd.includes('python ') ||
+      cmd.includes('python3 ') ||
+      cmd.includes('node ') ||
+      cmd.includes('java ') ||
       cmd.includes('cargo run') ||
       cmd.includes('npm start') ||
       cmd.includes('npm run start')
