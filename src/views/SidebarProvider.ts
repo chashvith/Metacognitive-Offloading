@@ -126,19 +126,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     <h3>Session</h3>
     <div class="button-group">
       <button class="btn btn-primary" id="startBtn"
-              onclick="send('cognitiveCoach.startProblem')">
+              data-command="cognitiveCoach.startProblem">
         ▶ Start Problem
       </button>
       <button class="btn btn-danger" id="endBtn"
-              onclick="send('cognitiveCoach.endProblem')" disabled>
+              data-command="cognitiveCoach.endProblem" disabled>
         ■ End Problem
       </button>
       <button class="btn btn-secondary"
-              onclick="send('cognitiveCoach.exportSession')">
+              data-command="cognitiveCoach.exportSession">
         ↗ Export Session
       </button>
       <button class="btn btn-secondary"
-              onclick="send('cognitiveCoach.exportDataset')">
+              data-command="cognitiveCoach.exportDataset">
         📦 Export Dataset
       </button>
     </div>
@@ -172,15 +172,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     <h3>Compile / Run</h3>
     <div class="button-row">
       <button class="btn btn-success"
-              onclick="send('cognitiveCoach.compileSuccess')">✓ Compile OK</button>
+              data-command="cognitiveCoach.compileSuccess">✓ Compile OK</button>
       <button class="btn btn-error"
-              onclick="send('cognitiveCoach.compileError')">✗ Compile Err</button>
+              data-command="cognitiveCoach.compileError">✗ Compile Err</button>
     </div>
     <div class="button-row">
       <button class="btn btn-success"
-              onclick="send('cognitiveCoach.successfulRun')">✓ Run OK</button>
+              data-command="cognitiveCoach.successfulRun">✓ Run OK</button>
       <button class="btn btn-error"
-              onclick="send('cognitiveCoach.runtimeError')">✗ Runtime Err</button>
+              data-command="cognitiveCoach.runtimeError">✗ Runtime Err</button>
     </div>
     <div class="compile-stats" id="compileStats"></div>
   </div>
@@ -190,15 +190,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     <h3>Hints</h3>
     <div class="button-group">
       <button class="btn btn-hint"
-              onclick="send('cognitiveCoach.hint1')">💡 Hint 1</button>
+              data-command="cognitiveCoach.hint1">💡 Hint 1</button>
       <button class="btn btn-hint"
-              onclick="send('cognitiveCoach.hint2')">💡 Hint 2</button>
+              data-command="cognitiveCoach.hint2">💡 Hint 2</button>
       <button class="btn btn-hint"
-              onclick="send('cognitiveCoach.conceptHint')">📖 Concept</button>
+              data-command="cognitiveCoach.conceptHint">📖 Concept</button>
       <button class="btn btn-hint"
-              onclick="send('cognitiveCoach.pseudocode')">📝 Pseudocode</button>
+              data-command="cognitiveCoach.pseudocode">📝 Pseudocode</button>
       <button class="btn btn-hint"
-              onclick="send('cognitiveCoach.solution')">🔑 Solution</button>
+              data-command="cognitiveCoach.solution">🔑 Solution</button>
     </div>
   </div>
 
@@ -207,9 +207,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     <h3>Counterexample</h3>
     <div class="button-row">
       <button class="btn btn-warning"
-              onclick="send('cognitiveCoach.showCounterexample')">⚡ Show</button>
+              data-command="cognitiveCoach.showCounterexample">⚡ Show</button>
       <button class="btn btn-success"
-              onclick="send('cognitiveCoach.counterexampleResolved')">✓ Resolved</button>
+              data-command="cognitiveCoach.counterexampleResolved">✓ Resolved</button>
     </div>
   </div>
 
@@ -224,9 +224,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     <h3>Finish</h3>
     <div class="button-group">
       <button class="btn btn-solved"
-              onclick="send('cognitiveCoach.problemSolved')">🎉 Problem Solved</button>
+              data-command="cognitiveCoach.problemSolved">🎉 Problem Solved</button>
       <button class="btn btn-abandoned"
-              onclick="send('cognitiveCoach.problemAbandoned')">🏳 Abandoned</button>
+              data-command="cognitiveCoach.problemAbandoned">🏳 Abandoned</button>
     </div>
   </div>
 
@@ -238,6 +238,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     function send(command) {
       vscode.postMessage({ command });
     }
+
+    // Handle all button clicks via event delegation
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('button[data-command]');
+      if (btn && !btn.disabled) {
+        send(btn.getAttribute('data-command'));
+      }
+    });
 
     /** Format seconds as HH:MM:SS */
     function formatTime(totalSeconds) {
