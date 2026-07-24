@@ -99,6 +99,15 @@ export class TelemetryTracker {
     this.disposables.push(
       vscode.tasks.onDidStartTaskProcess((e) => this.onTaskStart(e))
     );
+
+    // Auto-detect compile/run via terminal shell execution (VS Code 1.96.0+)
+    if (vscode.window.onDidEndTerminalShellExecution) {
+      this.disposables.push(
+        vscode.window.onDidEndTerminalShellExecution((e) =>
+          this.onTerminalExecutionEnd(e)
+        )
+      );
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -211,6 +220,55 @@ export class TelemetryTracker {
     this.timeline.push(EventType.TaskStarted, {
       task: e.execution.task.name,
     });
+  }
+
+  /** Handle terminal command execution endings (Shell Integration) */
+  private onTerminalExecutionEnd(e: vscode.TerminalShellExecutionEndEvent): void {
+    const cmd = e.execution.commandLine.value.toLowerCase().trim();
+    const exitCode = e.exitCode;
+    if (exitCode === undefined) {
+      return;
+    }
+
+    // Compile commands keywords
+    const isCompile =
+      cmd.startsWith('g++') ||
+      cmd.startsWith('gcc') ||
+      cmd.startsWith('clang') ||
+      cmd.startsWith('javac') ||
+      cmd.includes('cargo build') ||
+      cmd.includes('npm run build') ||
+      cmd.startsWith('make') ||
+      cmd.startsWith('cmake');
+
+    // Run commands keywords
+    const isRun =
+      cmd.includes('./a.out') ||
+      cmd.includes('./a.exe') ||
+      cmd.includes('.\\a.exe') ||
+      cmd.includes('.\\main.exe') ||
+      cmd.includes('.\\main') ||
+      cmd.startsWith('python') ||
+      cmd.startsWith('python3') ||
+      cmd.startsWith('node') ||
+      cmd.startsWith('java ') ||
+      cmd.includes('cargo run') ||
+      cmd.includes('npm start') ||
+      cmd.includes('npm run start');
+
+    if (isCompile) {
+      if (exitCode === 0) {
+        this.recordCompileSuccess();
+      } else {
+        this.recordCompileError(`Command: ${e.execution.commandLine.value} (exit code ${exitCode})`);
+      }
+    } else if (isRun) {
+      if (exitCode === 0) {
+        this.recordSuccessfulRun();
+      } else {
+        this.recordRuntimeError(`Command: ${e.execution.commandLine.value} (exit code ${exitCode})`);
+      }
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
