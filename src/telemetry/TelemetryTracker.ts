@@ -419,9 +419,10 @@ export class TelemetryTracker {
         buf.includes(': error c') ||          // MSVC
         buf.includes('compilation failed') ||
         buf.includes('build failed') ||
-        buf.includes('syntaxerror') ||         // Python
+        buf.includes('syntaxerror') ||         // Python/JS
         buf.includes('nameerror') ||           // Python
         buf.includes('cannot find symbol') ||  // Java
+        buf.includes('fatal error:') ||        // PHP / Swift / C++
         buf.includes('^~~~') ||                // clang
         buf.includes('^---')
       );
@@ -429,10 +430,13 @@ export class TelemetryTracker {
       return (
         buf.includes('traceback (most recent call last)') || // Python
         buf.includes('exception in thread') ||               // Java
+        buf.includes('unhandled exception') ||               // C# / .NET
         buf.includes('segmentation fault') ||
         buf.includes('segfault') ||
         buf.includes('uncaughtexception') ||                 // Node.js
         buf.includes('error: panicked') ||                   // Rust
+        buf.includes('panic:') ||                            // Go
+        buf.includes('fatal error:') ||                      // PHP / Swift / Go
         buf.includes('aborted (core dumped)') ||
         buf.includes('division by zero') ||                  // C++ / generic division error
         buf.includes('zero division') ||
@@ -451,6 +455,13 @@ export class TelemetryTracker {
       cmd.includes('clang ') ||
       cmd.includes('javac ') ||
       cmd.includes('cargo build') ||
+      cmd.includes('rustc ') ||
+      cmd.includes('go build') ||
+      cmd.includes('dotnet build') ||
+      cmd.includes('csc ') ||
+      cmd.includes('tsc ') ||
+      cmd.includes('kotlinc ') ||
+      cmd.includes('swiftc ') ||
       cmd.includes('npm run build') ||
       cmd.includes('make') ||
       cmd.includes('cmake') ||
@@ -473,6 +484,14 @@ export class TelemetryTracker {
       cmd.includes('node ') ||
       cmd.includes('java ') ||
       cmd.includes('cargo run') ||
+      cmd.includes('go run') ||
+      cmd.includes('dotnet run') ||
+      cmd.includes('ruby ') ||
+      cmd.includes('php ') ||
+      cmd.includes('perl ') ||
+      cmd.includes('swift ') ||
+      cmd.includes('kotlin ') ||
+      cmd.includes('dart ') ||
       cmd.includes('npm start') ||
       cmd.includes('npm run start')
     );
