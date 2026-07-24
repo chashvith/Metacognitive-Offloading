@@ -248,7 +248,6 @@ export class TelemetryTracker {
   /**
    * Approach 1: Shell Integration exit-code handler.
    * Only fires when the terminal's shell integration script is injected.
-   * On Windows with PowerShell this may not fire — Approach 2 is the fallback.
    */
   private onTerminalExecutionEnd(e: vscode.TerminalShellExecutionEndEvent): void {
     const cmd = e.execution.commandLine.value.toLowerCase().trim();
@@ -266,9 +265,24 @@ export class TelemetryTracker {
 
     const now = Date.now();
     if (now - this.lastTerminalCommandTime < TelemetryTracker.TERMINAL_DEDUP_MS) {
-      return; // Already recorded via Approach 2
+      return; // Already recorded via Approach 2 (streaming)
     }
     this.lastTerminalCommandTime = now;
+
+    // Handle compound commands (e.g. compile && run)
+    if (isCompile && isRun) {
+      if (exitCode === 0) {
+        this.recordCompileSuccess();
+        this.recordSuccessfulRun();
+      } else {
+        // If it failed, check if it was a compile error or runtime error
+        // We'll default to runtime error if we don't detect compiler errors
+        this.recordRuntimeError(
+          `Compound command failed: ${e.execution.commandLine.value} (exit ${exitCode})`
+        );
+      }
+      return;
+    }
 
     if (isCompile) {
       exitCode === 0 ? this.recordCompileSuccess() : this.recordCompileError(
@@ -318,18 +332,40 @@ export class TelemetryTracker {
         }
       }
     } catch {
-      // Stream ended or terminal closed — use whatever we collected
+      // Stream ended or terminal closed
     }
 
     const now = Date.now();
     if (now - this.lastTerminalCommandTime < TelemetryTracker.TERMINAL_DEDUP_MS) {
-      return; // Already recorded via shell integration end event
+      return; // Already recorded
     }
 
     const buf = outputBuffer.toLowerCase();
-    const hasError = this.bufferHasError(buf, cmdType);
+    
+    // Check if the command line was a compound compile-and-run command
+    const cmd = execution.commandLine.value.toLowerCase();
+    const isCompound = this.isCompileCommand(cmd) && this.isRunCommand(cmd);
 
     this.lastTerminalCommandTime = now;
+
+    if (isCompound) {
+      const hasCompileError = this.bufferHasError(buf, 'compile');
+      const hasRuntimeError = this.bufferHasError(buf, 'run');
+      
+      if (hasCompileError) {
+        this.recordCompileError('compound compile error detected from output');
+      } else if (hasRuntimeError) {
+        this.recordCompileSuccess();
+        this.recordRuntimeError('compound runtime error detected from output');
+      } else {
+        this.recordCompileSuccess();
+        this.recordSuccessfulRun();
+      }
+      return;
+    }
+
+    const hasError = this.bufferHasError(buf, cmdType);
+
     if (cmdType === 'compile') {
       hasError ? this.recordCompileError('auto-detected from output') : this.recordCompileSuccess();
     } else {
@@ -362,7 +398,11 @@ export class TelemetryTracker {
         buf.includes('segfault') ||
         buf.includes('uncaughtexception') ||                 // Node.js
         buf.includes('error: panicked') ||                   // Rust
-        buf.includes('aborted (core dumped)')
+        buf.includes('aborted (core dumped)') ||
+        buf.includes('division by zero') ||                  // C++ / generic division error
+        buf.includes('zero division') ||
+        buf.includes('arithmetic exception') ||
+        buf.includes('floating point exception')             // C++ division by zero signal
       );
     }
   }
