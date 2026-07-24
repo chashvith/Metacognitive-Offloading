@@ -1,0 +1,169 @@
+{
+  "name": "cognitive-coach",
+  "displayName": "Cognitive Coach",
+  "description": "AI-powered educational coding assistant — telemetry and session recording for ML training data",
+  "version": "0.0.1",
+  "publisher": "hackathon-team",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Education",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cognitiveCoach",
+          "title": "Cognitive Coach",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "cognitiveCoach": [
+        {
+          "type": "webview",
+          "id": "cognitiveCoach.sidebar",
+          "name": "Session"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "cognitiveCoach.startProblem",
+        "title": "Start Problem",
+        "category": "Cognitive Coach",
+        "icon": "$(play)"
+      },
+      {
+        "command": "cognitiveCoach.endProblem",
+        "title": "End Problem",
+        "category": "Cognitive Coach",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "cognitiveCoach.exportSession",
+        "title": "Export Session",
+        "category": "Cognitive Coach",
+        "icon": "$(export)"
+      },
+      {
+        "command": "cognitiveCoach.exportDataset",
+        "title": "Export Dataset",
+        "category": "Cognitive Coach",
+        "icon": "$(archive)"
+      },
+      {
+        "command": "cognitiveCoach.compileSuccess",
+        "title": "Compile Success",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.compileError",
+        "title": "Compile Error",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.successfulRun",
+        "title": "Successful Run",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.runtimeError",
+        "title": "Runtime Error",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.hint1",
+        "title": "Hint 1 Requested",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.hint2",
+        "title": "Hint 2 Requested",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.conceptHint",
+        "title": "Concept Hint Requested",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.pseudocode",
+        "title": "Pseudocode Requested",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.solution",
+        "title": "Solution Requested",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.showCounterexample",
+        "title": "Show Counterexample",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.counterexampleResolved",
+        "title": "Counterexample Resolved",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.problemSolved",
+        "title": "Problem Solved",
+        "category": "Cognitive Coach"
+      },
+      {
+        "command": "cognitiveCoach.problemAbandoned",
+        "title": "Problem Abandoned",
+        "category": "Cognitive Coach"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "cognitiveCoach.startProblem",
+          "when": "view == cognitiveCoach.sidebar",
+          "group": "navigation"
+        },
+        {
+          "command": "cognitiveCoach.endProblem",
+          "when": "view == cognitiveCoach.sidebar",
+          "group": "navigation"
+        },
+        {
+          "command": "cognitiveCoach.exportSession",
+          "when": "view == cognitiveCoach.sidebar",
+          "group": "navigation"
+        },
+        {
+          "command": "cognitiveCoach.exportDataset",
+          "when": "view == cognitiveCoach.sidebar",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node esbuild.js --production",
+    "watch": "node esbuild.js --watch",
+    "compile": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/archiver": "^8.0.0",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.96.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "archiver": "^8.0.0"
+  }
+}

@@ -1,0 +1,16 @@
+# Build output
+out/
+
+# Dependencies
+node_modules/
+
+# Session data (local-only, never committed)
+dataset/**/*.json
+dataset/.in_progress_session.json
+
+# Export archives
+*.zip
+
+# OS junk
+.DS_Store
+Thumbs.db
