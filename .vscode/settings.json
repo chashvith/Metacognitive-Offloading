@@ -1,0 +1,4 @@
+{
+  "terminal.integrated.shellIntegration.enabled": true,
+  "terminal.integrated.shellIntegration.showWelcome": false
+}
