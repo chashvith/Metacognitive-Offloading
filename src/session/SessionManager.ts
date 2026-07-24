@@ -140,25 +140,6 @@ export class SessionManager {
       return false;
     }
 
-    const topic = await vscode.window.showInputBox({
-      prompt: 'Topic (e.g. Array, String)',
-      ignoreFocusOut: true,
-    });
-    if (topic === undefined) return false;
-
-    const subtopic = await vscode.window.showInputBox({
-      prompt: 'Subtopic (e.g. HashMap, Two Pointers)',
-      ignoreFocusOut: true,
-    });
-    if (subtopic === undefined) return false;
-
-    const estMinsStr = await vscode.window.showInputBox({
-      prompt: 'Estimated Minutes (optional)',
-      ignoreFocusOut: true,
-    });
-    if (estMinsStr === undefined) return false;
-    const estMins = estMinsStr ? parseInt(estMinsStr, 10) : null;
-
     // ── Initialize session ─────────────────────────────────────────────
     const now = Date.now();
     const trackedUri = activeEditor?.document.uri.toString();
@@ -169,9 +150,9 @@ export class SessionManager {
     this.session = this.createEmptySession({
       problemName,
       difficulty,
-      topic: topic || 'Unknown',
-      subtopic: subtopic || 'Unknown',
-      estMins: isNaN(estMins as number) ? null : estMins,
+      topic: '',
+      subtopic: '',
+      estMins: null,
       language: language || defaultLang || 'unknown',
       studentId: studentId || '',
       startTime: new Date(now).toISOString(),
