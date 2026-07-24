@@ -296,7 +296,7 @@ export class SessionManager {
     this.session.status = finalStatus || 'Ended_incomplete';
     
     // ML derived metrics
-    const hesitationIndex = elapsed > 0 ? (metrics.totalPauseDuration / 1000) / elapsed : 0;
+    const hesitationIndex = elapsed > 0 ? metrics.totalPauseDuration / elapsed : 0;
     const editingIntensity = metrics.charactersTyped > 0 ? metrics.charactersDeleted / metrics.charactersTyped : 0;
     const helpDependencyScore = metrics.hintsAvailable > 0 ? metrics.hintsUsed / metrics.hintsAvailable : 0;
     const compileAttempts = (this.session.compile_attempts || 0);
