@@ -30,7 +30,7 @@ export function registerCommands(
 
   disposables.push(
     vscode.commands.registerCommand('cognitiveCoach.endProblem', () =>
-      manager.endProblem('Ended_incomplete')
+      manager.endProblem()
     )
   );
 
@@ -174,19 +174,7 @@ export function registerCommands(
     })
   );
 
-  // ── End-state events ─────────────────────────────────────────────────────
-
-  disposables.push(
-    vscode.commands.registerCommand('cognitiveCoach.problemSolved', () =>
-      manager.endProblem('Solved')
-    )
-  );
-
-  disposables.push(
-    vscode.commands.registerCommand('cognitiveCoach.problemAbandoned', () =>
-      manager.endProblem('Abandoned')
-    )
-  );
+  // ── End-state events (now handled via QuickPick in endProblem) ───────────
 
   return disposables;
 }

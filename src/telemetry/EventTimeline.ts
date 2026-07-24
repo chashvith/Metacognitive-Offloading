@@ -20,13 +20,15 @@ export class EventTimeline {
   /**
    * Push an event to the timeline with auto-computed elapsed time.
    * @param event - The event type
+   * @param source - Source of the event (automatic vs manual)
    * @param meta - Optional metadata (chars count, error message, etc.)
    * @returns The created TimelineEvent entry
    */
-  push(event: EventType, meta?: Record<string, unknown>): TimelineEvent {
+  push(event: EventType, source: 'automatic' | 'manual', meta?: Record<string, unknown>): TimelineEvent {
     const entry: TimelineEvent = {
       time: this.getElapsedSeconds(),
       event,
+      source,
     };
     if (meta !== undefined) {
       entry.meta = meta;

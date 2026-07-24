@@ -136,10 +136,28 @@ export class SessionManager {
       placeHolder: 'Optional',
       ignoreFocusOut: true,
     });
-    // studentId can be empty string (skipped) or undefined (cancelled)
     if (studentId === undefined) {
       return false;
     }
+
+    const topic = await vscode.window.showInputBox({
+      prompt: 'Topic (e.g. Array, String)',
+      ignoreFocusOut: true,
+    });
+    if (topic === undefined) return false;
+
+    const subtopic = await vscode.window.showInputBox({
+      prompt: 'Subtopic (e.g. HashMap, Two Pointers)',
+      ignoreFocusOut: true,
+    });
+    if (subtopic === undefined) return false;
+
+    const estMinsStr = await vscode.window.showInputBox({
+      prompt: 'Estimated Minutes (optional)',
+      ignoreFocusOut: true,
+    });
+    if (estMinsStr === undefined) return false;
+    const estMins = estMinsStr ? parseInt(estMinsStr, 10) : null;
 
     // ── Initialize session ─────────────────────────────────────────────
     const now = Date.now();
@@ -151,6 +169,9 @@ export class SessionManager {
     this.session = this.createEmptySession({
       problemName,
       difficulty,
+      topic: topic || 'Unknown',
+      subtopic: subtopic || 'Unknown',
+      estMins: isNaN(estMins as number) ? null : estMins,
       language: language || defaultLang || 'unknown',
       studentId: studentId || '',
       startTime: new Date(now).toISOString(),
@@ -160,7 +181,7 @@ export class SessionManager {
     this.tracker.attach();
 
     // Push start event
-    this.timeline.push(EventType.ProblemStarted);
+    this.timeline.push(EventType.ProblemStarted, 'manual');
 
     // Start periodic crash-recovery persistence
     this.startPersistTimer();
@@ -182,31 +203,68 @@ export class SessionManager {
    * End the current session with the given status.
    * Computes summary, saves to disk, cleans up listeners and timers.
    *
-   * @param status - 'Solved', 'Abandoned', or 'Ended_incomplete'
+   * @param forcedStatus - Use to bypass QuickPick (e.g. 'Ended_incomplete' during shutdown)
    * @returns true if a session was ended
    */
   async endProblem(
-    status: 'Solved' | 'Abandoned' | 'Ended_incomplete'
+    forcedStatus?: 'Ended_incomplete'
   ): Promise<boolean> {
     if (!this.session || !this.timeline || !this.tracker) {
       vscode.window.showWarningMessage('No active session to end.');
       return false;
     }
 
+    let finalStatus = forcedStatus as SessionStatus | undefined;
+    let minHelp = 0;
+    let outcomeReason = '';
+
+    if (!finalStatus) {
+      const pick = await vscode.window.showQuickPick([
+        'Solved independently',
+        'Solved after Hint 1',
+        'Solved after Hint 2',
+        'Solved after Concept',
+        'Solved after Pseudocode',
+        'Solved after Full Solution',
+        'Couldn\'t solve',
+        'Stopped because of time',
+        'Other'
+      ], { placeHolder: 'How did this session end?', ignoreFocusOut: true });
+
+      if (!pick) {
+        return false; // user cancelled ending the problem
+      }
+
+      switch(pick) {
+        case 'Solved independently': finalStatus = 'Solved'; minHelp = 0; break;
+        case 'Solved after Hint 1': finalStatus = 'Solved_With_Hint1'; minHelp = 1; break;
+        case 'Solved after Hint 2': finalStatus = 'Solved_With_Hint2'; minHelp = 2; break;
+        case 'Solved after Concept': finalStatus = 'Solved_With_Concept'; minHelp = 3; break;
+        case 'Solved after Pseudocode': finalStatus = 'Solved_With_Pseudocode'; minHelp = 4; break;
+        case 'Solved after Full Solution': finalStatus = 'Solved_With_Solution'; minHelp = 5; break;
+        case 'Couldn\'t solve': finalStatus = 'Could_Not_Solve'; minHelp = 6; break;
+        case 'Stopped because of time': finalStatus = 'Stopped_Time'; minHelp = 6; break;
+        case 'Other': finalStatus = 'Stopped_Other'; minHelp = 6; break;
+      }
+      outcomeReason = pick;
+    }
+
+    this.session.outcome = {
+      final_status: finalStatus || 'Ended_incomplete',
+      minimum_help_required: minHelp,
+      reason: outcomeReason
+    };
+
     // Finalize tracker (accounts for trailing idle time)
     this.tracker.finalize();
 
     // Push end event
-    switch (status) {
-      case 'Solved':
-        this.timeline.push(EventType.ProblemSolved);
-        break;
-      case 'Abandoned':
-        this.timeline.push(EventType.ProblemAbandoned);
-        break;
-      default:
-        this.timeline.push(EventType.ProblemEnded);
-        break;
+    if (finalStatus?.startsWith('Solved')) {
+      this.timeline.push(EventType.ProblemSolved, 'manual');
+    } else if (finalStatus === 'Could_Not_Solve' || finalStatus?.startsWith('Stopped')) {
+      this.timeline.push(EventType.ProblemAbandoned, 'manual');
+    } else {
+      this.timeline.push(EventType.ProblemEnded, 'manual');
     }
 
     // ── Compute session summary ──────────────────────────────────────────
@@ -254,8 +312,31 @@ export class SessionManager {
     this.session.time_to_resolution_after_counterexample =
       metrics.timeToResolutionAfterCounterexample;
 
-    this.session.status = status;
-    this.session.timeline = this.timeline.toJSON();
+    this.session.status = finalStatus || 'Ended_incomplete';
+    
+    // ML derived metrics
+    const hesitationIndex = elapsed > 0 ? (metrics.totalPauseDuration / 1000) / elapsed : 0;
+    const editingIntensity = metrics.charactersTyped > 0 ? metrics.charactersDeleted / metrics.charactersTyped : 0;
+    const helpDependencyScore = metrics.hintsAvailable > 0 ? metrics.hintsUsed / metrics.hintsAvailable : 0;
+    const compileAttempts = (this.session.compile_attempts || 0);
+    const compileFailureRate = compileAttempts > 0 ? (this.session.compile_errors || 0) / compileAttempts : 0;
+    const avgPause = metrics.pauseCount > 0 ? metrics.totalPauseDuration / metrics.pauseCount : 0;
+
+    this.session.derived_metrics = {
+      hesitation_index: hesitationIndex,
+      editing_intensity: editingIntensity,
+      help_dependency_score: helpDependencyScore,
+      compile_failure_rate: compileFailureRate,
+      average_pause_duration: avgPause
+    };
+
+    // Sanitize absolute file paths
+    this.session.timeline = this.timeline.toJSON().map(e => {
+      if (e.meta && typeof e.meta.file === 'string') {
+        e.meta.file = e.meta.file.split(/[/\\]/).pop();
+      }
+      return e;
+    });
 
     // ── Save and clean up ────────────────────────────────────────────────
     const savedUri = await this.persistence.saveSession(this.session);
@@ -274,7 +355,7 @@ export class SessionManager {
 
     if (savedUri) {
       vscode.window.showInformationMessage(
-        `Session ended (${status}): ${problemName} — saved to dataset/`
+        `Session ended (${finalStatus}): ${problemName} — saved to dataset/`
       );
     }
 
@@ -506,10 +587,12 @@ export class SessionManager {
     };
   }
 
-  /** Create an empty Session object with initial values */
   private createEmptySession(opts: {
     problemName: string;
     difficulty: Difficulty;
+    topic: string;
+    subtopic: string;
+    estMins: number | null;
     language: string;
     studentId: string;
     startTime: string;
@@ -523,6 +606,14 @@ export class SessionManager {
       student_id: opts.studentId,
       start_time: opts.startTime,
       end_time: '',
+      problem: {
+        topic: opts.topic,
+        subtopic: opts.subtopic,
+        difficulty: opts.difficulty,
+        estimated_minutes: opts.estMins,
+      },
+      outcome: null,
+      derived_metrics: null,
       time_spent: 0,
       idle_time: 0,
       characters_typed: 0,

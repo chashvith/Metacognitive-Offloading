@@ -222,12 +222,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   <!-- ── Finish ──────────────────────────────────────────────────── -->
   <div class="section" id="endSection" style="display:none;">
     <h3>Finish</h3>
-    <div class="button-group">
-      <button class="btn btn-solved"
-              data-command="cognitiveCoach.problemSolved">🎉 Problem Solved</button>
-      <button class="btn btn-abandoned"
-              data-command="cognitiveCoach.problemAbandoned">🏳 Abandoned</button>
-    </div>
+    <button class="btn btn-abandoned" style="width: 100%;"
+            data-command="cognitiveCoach.endProblem">🛑 End Problem</button>
   </div>
 
   <!-- ── Webview Script ──────────────────────────────────────────── -->

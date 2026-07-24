@@ -65,6 +65,8 @@ export interface TimelineEvent {
   time: number;
   /** The type of event */
   event: EventType;
+  /** Source of the event (automatic vs manual button click) */
+  source: 'automatic' | 'manual';
   /** Optional metadata specific to this event type */
   meta?: Record<string, unknown>;
 }
@@ -72,7 +74,43 @@ export interface TimelineEvent {
 // ─── Session Metadata ──────────────────────────────────────────────────────────
 
 /** Session status states */
-export type SessionStatus = 'Idle' | 'Recording' | 'Solved' | 'Abandoned' | 'Ended_incomplete';
+export type SessionStatus =
+  | 'Idle'
+  | 'Recording'
+  | 'Solved'
+  | 'Solved_With_Hint1'
+  | 'Solved_With_Hint2'
+  | 'Solved_With_Concept'
+  | 'Solved_With_Pseudocode'
+  | 'Solved_With_Solution'
+  | 'Could_Not_Solve'
+  | 'Stopped_Time'
+  | 'Stopped_Other'
+  | 'Ended_incomplete';
+
+/** Problem Metadata */
+export interface ProblemMetadata {
+  topic: string;
+  subtopic: string;
+  difficulty: Difficulty;
+  estimated_minutes: number | null;
+}
+
+/** Session Outcome */
+export interface Outcome {
+  final_status: SessionStatus;
+  minimum_help_required: number; // 0 = independent, 1-5 = hints, 6 = could not solve
+  reason: string;
+}
+
+/** Derived ML Metrics */
+export interface DerivedMetrics {
+  hesitation_index: number | null;
+  editing_intensity: number | null;
+  help_dependency_score: number | null;
+  compile_failure_rate: number | null;
+  average_pause_duration: number | null;
+}
 
 /** Difficulty levels for problems */
 export type Difficulty = 'Easy' | 'Medium' | 'Hard';
@@ -118,52 +156,45 @@ export interface Session {
   start_time: string;
   end_time: string;
 
-  // Time metrics
-  time_spent: number;
-  idle_time: number;
+  // ─── Backward Compatible Fields ───
+  time_spent: number | null;
+  idle_time: number | null;
 
-  // Text metrics
-  characters_typed: number;
-  characters_deleted: number;
-  deletion_ratio: number;
-  typing_speed: number;
+  characters_typed: number | null;
+  characters_deleted: number | null;
+  deletion_ratio: number | null;
+  typing_speed: number | null;
 
-  // Pause metrics
-  pause_count: number;
-  pause_duration: number;
+  pause_count: number | null;
+  pause_duration: number | null;
 
-  // File metrics
-  file_save_count: number;
-  file_open_count: number;
+  file_save_count: number | null;
+  file_open_count: number | null;
 
-  // Compile/run metrics (manual)
-  compile_attempts: number;
-  compile_errors: number;
-  successful_runs: number;
-  runtime_errors: number;
+  compile_attempts: number | null;
+  compile_errors: number | null;
+  successful_runs: number | null;
+  runtime_errors: number | null;
+  auto_compile_attempts: number | null;
 
-  // Compile/run metrics (auto-detected via task system, kept separate)
-  auto_compile_attempts: number;
-
-  // Hint metrics
   hints_requested: HintCounts;
-  hints_available: number;
-  hints_used: number;
-  independent_fix_rate: number;
+  hints_available: number | null;
+  hints_used: number | null;
+  independent_fix_rate: number | null;
 
-  // Error pattern metrics
-  same_error_peak: number;
-
-  // Struggle score (array, not just final — your best demo visual)
+  same_error_peak: number | null;
   struggle_scores: StruggleScoreEntry[];
 
-  // Counterexample metrics
-  counterexample_shown_count: number;
+  counterexample_shown_count: number | null;
   time_to_resolution_after_counterexample: number | null;
 
-  // Status and timeline
   status: SessionStatus;
   timeline: TimelineEvent[];
+
+  // ─── New ML Dataset Fields ───
+  problem: ProblemMetadata;
+  outcome: Outcome | null;
+  derived_metrics: DerivedMetrics | null;
 }
 
 // ─── Webview Communication ─────────────────────────────────────────────────────

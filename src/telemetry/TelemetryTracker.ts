@@ -167,7 +167,7 @@ export class TelemetryTracker {
         // Flush pending typing to timeline before the pause event
         this.flushTypingEvents();
 
-        this.timeline.push(EventType.PauseDetected, {
+        this.timeline.push(EventType.PauseDetected, 'automatic', {
           duration_ms: gap,
           pause_number: this.pauseCount,
         });
@@ -200,11 +200,11 @@ export class TelemetryTracker {
    */
   private flushTypingEvents(): void {
     if (this.pendingTypedChars > 0) {
-      this.timeline.push(EventType.Typed, { chars: this.pendingTypedChars });
+      this.timeline.push(EventType.Typed, 'automatic', { chars: this.pendingTypedChars });
       this.pendingTypedChars = 0;
     }
     if (this.pendingDeletedChars > 0) {
-      this.timeline.push(EventType.Deleted, {
+      this.timeline.push(EventType.Deleted, 'automatic', {
         chars: this.pendingDeletedChars,
       });
       this.pendingDeletedChars = 0;
@@ -221,7 +221,7 @@ export class TelemetryTracker {
     }
     this.fileSaveCount++;
     this.flushTypingEvents();
-    this.timeline.push(EventType.FileSaved);
+    this.timeline.push(EventType.FileSaved, 'automatic');
   }
 
   /** Handle active editor changes (file switching) */
@@ -234,7 +234,7 @@ export class TelemetryTracker {
       this.flushTypingEvents();
       this.trackedDocumentUri = newUri;
       this.fileOpenCount++;
-      this.timeline.push(EventType.FileSwitched, {
+      this.timeline.push(EventType.FileSwitched, 'automatic', {
         file: editor.document.fileName,
       });
     }
@@ -243,7 +243,7 @@ export class TelemetryTracker {
   /** Handle auto-detected task/compile starts */
   private onTaskStart(e: vscode.TaskProcessStartEvent): void {
     this.autoCompileAttempts++;
-    this.timeline.push(EventType.TaskStarted, {
+    this.timeline.push(EventType.TaskStarted, 'automatic', {
       task: e.execution.task.name,
     });
   }
@@ -267,15 +267,15 @@ export class TelemetryTracker {
 
     if (isCompile) {
       if (exitCode === 0) {
-        this.recordCompileSuccess();
+        this.recordCompileSuccess('automatic');
       } else {
-        this.recordCompileError(`Task ${e.execution.task.name} failed (exit ${exitCode})`);
+        this.recordCompileError(`Task ${e.execution.task.name} failed (exit ${exitCode})`, 'automatic');
       }
     } else if (isRun) {
       if (exitCode === 0) {
-        this.recordSuccessfulRun();
+        this.recordSuccessfulRun('automatic');
       } else {
-        this.recordRuntimeError(`Task ${e.execution.task.name} failed (exit ${exitCode})`);
+        this.recordRuntimeError(`Task ${e.execution.task.name} failed (exit ${exitCode})`, 'automatic');
       }
     }
   }
@@ -307,25 +307,25 @@ export class TelemetryTracker {
     // Handle compound commands (e.g. compile && run)
     if (isCompile && isRun) {
       if (exitCode === 0) {
-        this.recordCompileSuccess();
-        this.recordSuccessfulRun();
+        this.recordCompileSuccess('automatic');
+        this.recordSuccessfulRun('automatic');
       } else {
         // If it failed, check if it was a compile error or runtime error
         // We'll default to runtime error if we don't detect compiler errors
         this.recordRuntimeError(
-          `Compound command failed: ${e.execution.commandLine.value} (exit ${exitCode})`
+          `Compound command failed: ${e.execution.commandLine.value} (exit ${exitCode})`, 'automatic'
         );
       }
       return;
     }
 
     if (isCompile) {
-      exitCode === 0 ? this.recordCompileSuccess() : this.recordCompileError(
-        `${e.execution.commandLine.value} (exit ${exitCode})`
+      exitCode === 0 ? this.recordCompileSuccess('automatic') : this.recordCompileError(
+        `${e.execution.commandLine.value} (exit ${exitCode})`, 'automatic'
       );
     } else {
-      exitCode === 0 ? this.recordSuccessfulRun() : this.recordRuntimeError(
-        `${e.execution.commandLine.value} (exit ${exitCode})`
+      exitCode === 0 ? this.recordSuccessfulRun('automatic') : this.recordRuntimeError(
+        `${e.execution.commandLine.value} (exit ${exitCode})`, 'automatic'
       );
     }
   }
@@ -388,13 +388,13 @@ export class TelemetryTracker {
       const hasRuntimeError = this.bufferHasError(buf, 'run');
       
       if (hasCompileError) {
-        this.recordCompileError('compound compile error detected from output');
+        this.recordCompileError('compound compile error detected from output', 'automatic');
       } else if (hasRuntimeError) {
-        this.recordCompileSuccess();
-        this.recordRuntimeError('compound runtime error detected from output');
+        this.recordCompileSuccess('automatic');
+        this.recordRuntimeError('compound runtime error detected from output', 'automatic');
       } else {
-        this.recordCompileSuccess();
-        this.recordSuccessfulRun();
+        this.recordCompileSuccess('automatic');
+        this.recordSuccessfulRun('automatic');
       }
       return;
     }
@@ -402,9 +402,9 @@ export class TelemetryTracker {
     const hasError = this.bufferHasError(buf, cmdType);
 
     if (cmdType === 'compile') {
-      hasError ? this.recordCompileError('auto-detected from output') : this.recordCompileSuccess();
+      hasError ? this.recordCompileError('auto-detected from output', 'automatic') : this.recordCompileSuccess('automatic');
     } else {
-      hasError ? this.recordRuntimeError('auto-detected from output') : this.recordSuccessfulRun();
+      hasError ? this.recordRuntimeError('auto-detected from output', 'automatic') : this.recordSuccessfulRun('automatic');
     }
   }
 
@@ -502,40 +502,42 @@ export class TelemetryTracker {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /** Record a successful compile (manual button) */
-  recordCompileSuccess(): void {
+  recordCompileSuccess(source: 'automatic' | 'manual' = 'manual'): void {
     this.flushTypingEvents();
     this.lastErrorMessage = '';
     this.currentErrorStreak = 0;
-    this.timeline.push(EventType.CompileSuccess);
+    this.timeline.push(EventType.CompileSuccess, source);
     this.computeStruggleScore(EventType.CompileSuccess);
   }
 
   /** Record a compile error (manual button) */
-  recordCompileError(errorMessage?: string): void {
+  recordCompileError(errorMessage?: string, source: 'automatic' | 'manual' = 'manual'): void {
     this.flushTypingEvents();
     this.trackErrorRepetition(errorMessage);
     this.timeline.push(
       EventType.CompileError,
+      source,
       errorMessage ? { error: errorMessage } : undefined
     );
     this.computeStruggleScore(EventType.CompileError);
   }
 
   /** Record a successful run (manual button) */
-  recordSuccessfulRun(): void {
+  recordSuccessfulRun(source: 'automatic' | 'manual' = 'manual'): void {
     this.flushTypingEvents();
     this.lastErrorMessage = '';
     this.currentErrorStreak = 0;
-    this.timeline.push(EventType.SuccessfulRun);
+    this.timeline.push(EventType.SuccessfulRun, source);
     this.computeStruggleScore(EventType.SuccessfulRun);
   }
 
   /** Record a runtime error (manual button) */
-  recordRuntimeError(errorMessage?: string): void {
+  recordRuntimeError(errorMessage?: string, source: 'automatic' | 'manual' = 'manual'): void {
     this.flushTypingEvents();
     this.trackErrorRepetition(errorMessage);
     this.timeline.push(
       EventType.RuntimeError,
+      source,
       errorMessage ? { error: errorMessage } : undefined
     );
     this.computeStruggleScore(EventType.RuntimeError);
@@ -548,7 +550,7 @@ export class TelemetryTracker {
   recordHint(type: EventType): void {
     this.flushTypingEvents();
     this.hintsUsed++;
-    this.timeline.push(type);
+    this.timeline.push(type, 'manual');
     this.computeStruggleScore(type);
   }
 
@@ -560,7 +562,7 @@ export class TelemetryTracker {
     this.flushTypingEvents();
     this.counterexampleShownCount++;
     this.counterexampleShownTime = Date.now();
-    this.timeline.push(EventType.CounterexampleShown, {
+    this.timeline.push(EventType.CounterexampleShown, 'manual', {
       // Placeholder dummy test case — replaced when AI layer lands
       test_case: {
         input: [2, 7, 11, 15],
@@ -582,7 +584,7 @@ export class TelemetryTracker {
         (Date.now() - this.counterexampleShownTime) / 1000
       );
     }
-    this.timeline.push(EventType.CounterexampleResolved, {
+    this.timeline.push(EventType.CounterexampleResolved, 'manual', {
       resolution_time_seconds: this.timeToResolutionAfterCounterexample,
     });
     this.computeStruggleScore(EventType.CounterexampleResolved);
@@ -611,7 +613,7 @@ export class TelemetryTracker {
       if (this.currentErrorStreak > this.sameErrorPeak) {
         this.sameErrorPeak = this.currentErrorStreak;
       }
-      this.timeline.push(EventType.SameErrorRepeated, {
+      this.timeline.push(EventType.SameErrorRepeated, 'automatic', {
         streak: this.currentErrorStreak,
         error: msg,
       });
