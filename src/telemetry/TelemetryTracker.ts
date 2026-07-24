@@ -107,6 +107,9 @@ export class TelemetryTracker {
     this.disposables.push(
       vscode.tasks.onDidStartTaskProcess((e) => this.onTaskStart(e))
     );
+    this.disposables.push(
+      vscode.tasks.onDidEndTaskProcess((e) => this.onTaskEnd(e))
+    );
 
     // ── Approach 1: Shell Integration (VS Code 1.93+, requires shell to support it)
     // Works automatically when shell integration is injected. Gives us the
@@ -243,6 +246,38 @@ export class TelemetryTracker {
     this.timeline.push(EventType.TaskStarted, {
       task: e.execution.task.name,
     });
+  }
+
+  /** Handle task process endings (independent of terminal shell integration) */
+  private onTaskEnd(e: vscode.TaskProcessEndEvent): void {
+    const taskName = e.execution.task.name.toLowerCase();
+    const exitCode = e.exitCode;
+    if (exitCode === undefined) {
+      return;
+    }
+
+    const isCompile = taskName.includes('compile') || taskName.includes('build') || taskName.includes('g++') || taskName.includes('gcc') || taskName.includes('clang');
+    const isRun = taskName.includes('run') || taskName.includes('execute') || taskName.includes('play');
+
+    const now = Date.now();
+    if (now - this.lastTerminalCommandTime < TelemetryTracker.TERMINAL_DEDUP_MS) {
+      return; // Already recorded via terminal execution event
+    }
+    this.lastTerminalCommandTime = now;
+
+    if (isCompile) {
+      if (exitCode === 0) {
+        this.recordCompileSuccess();
+      } else {
+        this.recordCompileError(`Task ${e.execution.task.name} failed (exit ${exitCode})`);
+      }
+    } else if (isRun) {
+      if (exitCode === 0) {
+        this.recordSuccessfulRun();
+      } else {
+        this.recordRuntimeError(`Task ${e.execution.task.name} failed (exit ${exitCode})`);
+      }
+    }
   }
 
   /**
