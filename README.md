@@ -43,23 +43,54 @@ cognitive-coach-telemetry/
 
 ---
 
-## How to Run
+## Getting Started
 
 ### Prerequisites
-- Node.js v18+ (includes npm)
-- VS Code v1.96.0+
+Make sure you have the following installed on your system:
+- **Git** (to clone the repository)
+- **Node.js** (v18.0.0 or higher) - [Download Node.js](https://nodejs.org/)
+- **Visual Studio Code** (v1.96.0 or higher) - [Download VS Code](https://code.visualstudio.com/)
 
-### Setup
+---
+
+### Step-by-Step Installation
+
+#### 1. Clone the Repository
+Clone the repository using Git and navigate to the project directory:
 ```bash
-npm install
-npm run build
+git clone https://github.com/chashvith/Metacognitive-Offloading.git
+cd Metacognitive-Offloading/cognitive-coach
 ```
 
-1. Open the project folder in VS Code.
-2. Press **F5** (or run `Run > Start Debugging`).
-3. An **Extension Development Host** window will open.
-4. Click the **brain icon** in the left Activity Bar to open the Cognitive Coach panel.
-5. Click **Start Problem** and begin coding.
+#### 2. Install Dependencies
+Run the following command in the `cognitive-coach` directory to install all required dependencies:
+```bash
+npm install
+```
+
+#### 3. Compile/Build the Extension
+Compile the source code. You have two options:
+- **Production Build (One-time):**
+  ```bash
+  npm run build
+  ```
+- **Development Build (Watch Mode):** Recompiles automatically when you make changes to the source files. Recommended for active development:
+  ```bash
+  npm run watch
+  ```
+
+---
+
+### Running & Testing the Extension
+
+1. **Open in VS Code:** Open the `cognitive-coach` folder in Visual Studio Code.
+2. **Start Debugging:** Press **F5** on your keyboard (or click **Run > Start Debugging** in the top menu).
+3. **Extension Host Window:** This launches a new window titled **[Extension Development Host]** with the extension pre-loaded.
+4. **Open a Folder/Workspace:** In the newly opened *Extension Development Host* window, open or create a folder where you want to write/test code.
+5. **Access the Sidebar:** Click the **Brain icon** in the left Activity Bar to open the **Cognitive Coach** panel.
+6. **Start a Session:** Click the **Start Problem** button in the sidebar and start coding!
+
+---
 
 ## How to Debug
 
