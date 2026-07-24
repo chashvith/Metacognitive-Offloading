@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import archiver from 'archiver';
+const archiver = require('archiver');
 import { DATASET_FOLDER, IN_PROGRESS_FILE } from '../constants';
 
 export interface IDatasetExporter {
