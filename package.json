@@ -1,9 +1,13 @@
 {
   "name": "cognitive-coach",
   "displayName": "Cognitive Coach",
-  "description": "AI-powered educational coding assistant — telemetry and session recording for ML training data",
+  "description": "AI-powered educational coding assistant - telemetry and session recording for ML training data",
   "version": "0.0.1",
   "publisher": "hackathon-team",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chashvith/Metacognitive-Offloading"
+  },
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -112,16 +116,6 @@
       {
         "command": "cognitiveCoach.counterexampleResolved",
         "title": "Counterexample Resolved",
-        "category": "Cognitive Coach"
-      },
-      {
-        "command": "cognitiveCoach.problemSolved",
-        "title": "Problem Solved",
-        "category": "Cognitive Coach"
-      },
-      {
-        "command": "cognitiveCoach.problemAbandoned",
-        "title": "Problem Abandoned",
         "category": "Cognitive Coach"
       }
     ],

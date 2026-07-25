@@ -1,44 +1,65 @@
 # Cognitive Coach — Telemetry Collection Extension
 
-An AI-powered educational coding assistant that records how a student solves a programming problem, session by session, and saves each session as a local JSON file for future ML training.
-
-**This repository covers ONLY the telemetry/data collection phase.** Everything runs fully offline — no AI, no LLM, no backend, no network requests.
+An AI-powered educational coding assistant that records how a student solves a programming problem, session by session, and saves each session as a local JSON file for ML training.
 
 ---
 
 ## Project Overview
 
-The goal of this extension is to silently gather data about the coding process (pauses, deletions, errors, hint requests). By aggregating these events into a timeline, we can later train a machine learning model to detect *when* a student is struggling and proactively offer assistance.
+The goal of this extension is to silently gather data about the coding process (pauses, deletions, errors, hint requests). By aggregating these events into a timeline, we train a machine learning model to detect *when* a student is struggling and predict the **minimum level of help** they will need.
+
+**Target label for ML:** `minimum_help_required` (0–6)
+| Value | Meaning |
+|-------|---------|
+| 0 | Solved independently |
+| 1 | Needed Hint 1 |
+| 2 | Needed Hint 2 |
+| 3 | Needed Concept explanation |
+| 4 | Needed Pseudocode |
+| 5 | Needed Full Solution |
+| 6 | Could Not Solve |
+
+---
 
 ## Features
-- **Local JSON Dataset**: Every session writes directly to the local `dataset/` folder.
-- **Dataset Export**: One-click "Export Dataset" button that zips all completed sessions into a single `.zip` file for sharing or training.
-- **Unified Event Timeline**: All automatic events (typing, file saves) and manual events (compile success, hint requests) share a single chronological timeline.
+
+- **Automatic Error Detection**: Detects compile errors and runtime errors directly from terminal output — supports C++, Python, Java, JavaScript, Go, C#, Rust, Ruby, PHP, Swift, Kotlin, Dart and more.
+- **Local JSON Dataset**: Every session writes directly to the local `dataset/` folder with a standardized ML-ready schema.
+- **Outcome QuickPick**: When ending a session, a dialog asks "How did this session end?" — this sets the `minimum_help_required` label automatically.
+- **Derived ML Metrics**: Automatically computes `hesitation_index`, `editing_intensity`, `help_dependency_score`, `compile_failure_rate`, and `average_pause_duration` before export.
+- **Unified Event Timeline**: Every event is tagged with `"source": "automatic"` or `"source": "manual"` for full traceability.
 - **Real-Time Struggle Score**: Computes a struggle score per-event based on deletion ratio, pause frequency, compile error rate, and hint usage.
+- **Dataset Export**: One-click "Export Dataset" button that zips all sessions into a single `.zip` file.
 - **Crash Recovery**: Periodically saves an in-progress state file. Restores if VS Code crashes.
-- **Theme-Aware Webview UI**: A responsive Activity Bar panel showing live metrics, timers, and action buttons.
+- **Synthetic Data Generator**: `scripts/generate_synthetic_data.py` generates 300+ realistic sessions for ML bootstrapping.
+- **ML Training Pipeline**: `scripts/train_model.py` trains a Random Forest + XGBoost model and saves the best one.
+
+---
 
 ## Folder Structure
 
 ```
-cognitive-coach-telemetry/
-├── dataset/                  ← All JSON session data goes here
-│   └── .gitkeep              ← Ensures dataset/ is tracked while contents are ignored
-├── media/                    ← Icons and webview CSS
-├── src/                      
-│   ├── commands/             ← VS Code command registrations
-│   ├── export/               ← ZIP export logic (DatasetExporter)
-│   ├── session/              ← Session lifecycle and file I/O
-│   ├── telemetry/            ← VS Code listeners + metrics calculation
-│   ├── utils/                ← UUID generators
-│   ├── views/                ← Webview UI providers
-│   ├── constants.ts          ← Tunable thresholds
-│   ├── extension.ts          ← Entry point
-│   └── types.ts              ← Shared TypeScript interfaces
-├── .vscode/                  ← Debug configurations (F5 support)
-├── package.json              
+cognitive-coach/
+├── dataset/                  <- All JSON session data goes here
+│   └── .gitkeep
+├── model/                    <- Trained ML model (.pkl) saved here
+├── scripts/
+│   ├── generate_synthetic_data.py   <- Generate 300 synthetic sessions
+│   └── train_model.py               <- Train Random Forest + XGBoost
+├── media/                    <- Icons and webview CSS
+├── src/
+│   ├── commands/             <- VS Code command registrations
+│   ├── export/               <- ZIP export logic
+│   ├── session/              <- Session lifecycle and file I/O
+│   ├── telemetry/            <- VS Code listeners + metrics calculation
+│   ├── utils/                <- UUID generator
+│   ├── views/                <- Webview UI
+│   ├── constants.ts          <- Tunable thresholds
+│   ├── extension.ts          <- Entry point
+│   └── types.ts              <- TypeScript interfaces & ML schema
+├── package.json
 ├── README.md
-└── .gitignore                ← Excludes dataset/*.json, *.zip, node_modules/
+└── .gitignore
 ```
 
 ---
@@ -46,120 +67,108 @@ cognitive-coach-telemetry/
 ## Getting Started
 
 ### Prerequisites
-Make sure you have the following installed on your system:
-- **Git** (to clone the repository)
-- **Node.js** (v18.0.0 or higher) - [Download Node.js](https://nodejs.org/)
-- **Visual Studio Code** (v1.96.0 or higher) - [Download VS Code](https://code.visualstudio.com/)
+- **Node.js** v18+ — [Download](https://nodejs.org/)
+- **Visual Studio Code** v1.96+ — [Download](https://code.visualstudio.com/)
+- **Python 3.10+** (for ML scripts only) — [Download](https://python.org/)
 
----
+### Installation
 
-### Step-by-Step Installation
-
-#### 1. Clone the Repository
-Clone the repository using Git and navigate to the project directory:
 ```bash
 git clone https://github.com/chashvith/Metacognitive-Offloading.git
 cd Metacognitive-Offloading/cognitive-coach
-```
-
-#### 2. Install Dependencies
-Run the following command in the `cognitive-coach` directory to install all required dependencies:
-```bash
 npm install
+npm run build
 ```
 
-#### 3. Compile/Build the Extension
-Compile the source code. You have two options:
-- **Production Build (One-time):**
-  ```bash
-  npm run build
-  ```
-- **Development Build (Watch Mode):** Recompiles automatically when you make changes to the source files. Recommended for active development:
-  ```bash
-  npm run watch
-  ```
+### Running the Extension
 
----
-
-### Running & Testing the Extension
-
-1. **Open in VS Code:** Open the `cognitive-coach` folder in Visual Studio Code.
-2. **Start Debugging:** Press **F5** on your keyboard (or click **Run > Start Debugging** in the top menu).
-3. **Extension Host Window:** This launches a new window titled **[Extension Development Host]** with the extension pre-loaded.
-4. **Open a Folder/Workspace:** In the newly opened *Extension Development Host* window, open or create a folder where you want to write/test code.
-5. **Access the Sidebar:** Click the **Brain icon** in the left Activity Bar to open the **Cognitive Coach** panel.
-6. **Start a Session:** Click the **Start Problem** button in the sidebar and start coding!
-
----
-
-## How to Debug
-
-- **Breakpoints**: You can set breakpoints inside the `src/` folder. Execution will pause when the code path is hit in the Development Host window.
-- **Logs**: Use `console.log()`. Output will appear in the **Debug Console** of your *main* VS Code window (not the Development Host).
-- **Webview UI Inspection**: Press `Ctrl+Shift+P` (or `Cmd+Shift+P`) in the Development Host and run `Developer: Open Webview Developer Tools` to inspect the HTML/CSS/JS of the sidebar panel.
+1. Open the `cognitive-coach` folder in VS Code.
+2. Press **F5** to launch the Extension Development Host.
+3. In the new window, open any project folder.
+4. Click the **Cognitive Coach icon** in the left Activity Bar.
+5. Click **Start Problem**, fill in the prompts, and start coding!
 
 ---
 
 ## How Data Collection Works
 
-### Telemetry Capture (end to end)
-
 ```
 Student types in editor
         │
         ▼
-onDidChangeTextDocument fires (EVERY event, no debounce)
+onDidChangeTextDocument (every keystroke, no debounce)
         │
-        ├──▶ Raw metrics updated: chars_typed, chars_deleted
-        ├──▶ Pause detection: gap > 5s → pause event + struggle score recompute
-        └──▶ Typing batched for timeline (flushed on pauses / manual events)
+        ├──> chars_typed / chars_deleted updated
+        ├──> Pause detection: gap > 5s → pause event + struggle score
+        └──> Typing batched for timeline
 
-Student clicks "Compile Error" button (or Ctrl+Shift+P → command)
+Student runs code in terminal
         │
         ▼
-Manual event pushed to unified timeline
+Shell Integration / Task hooks detect exit code
         │
-        ├──▶ Same-error-repeated tracker updated
-        ├──▶ Struggle score recomputed (per-event, NOT on timer)
-        └──▶ In-progress state persisted to disk
+        ├──> Exit 0  → compile_success or successful_run
+        └──> Exit ≠0 → compile_error or runtime_error
 
-Session ends (Solved / Abandoned / VS Code closes)
+Student clicks "End Problem"
         │
         ▼
-Summary computed → JSON written to dataset/session_YYYYMMDD_HHMMSS.json
+QuickPick: "How did this session end?"
+        │
+        └──> Sets status + minimum_help_required label
+             Computes derived_metrics
+             Sanitizes file paths
+             Saves JSON to dataset/
 ```
 
-### Two Separate Loops
+---
 
-| Loop | Interval | Purpose |
-|------|----------|---------|
-| **Data capture** | Per-event (every keystroke, every button click) | Raw metric accumulation, pause detection, struggle score |
-| **UI refresh** | 500ms timer | Render timer, metrics, sparkline in sidebar |
+## ML Training
 
-These are never conflated. Data capture is raw and precise. UI refresh is a rendering optimization.
+### Step 1: Generate Synthetic Data (optional)
+```bash
+python scripts/generate_synthetic_data.py
+# Generates 300 session JSONs in dataset/
+```
+
+### Step 2: Train the Model
+```bash
+pip install scikit-learn xgboost pandas numpy
+python scripts/train_model.py
+# Trains Random Forest + XGBoost
+# Saves best model to model/cognitive_coach_model.pkl
+# Prints accuracy, classification report, feature importances
+```
+
+### ML Features (X)
+| Feature | Description |
+|---------|-------------|
+| `time_spent` | Total session time (seconds) |
+| `idle_ratio` | Fraction of time idle |
+| `deletion_ratio` | chars deleted / chars typed |
+| `typing_speed` | chars per active minute |
+| `pause_count` | Number of detected pauses |
+| `hesitation_index` | pause_duration / time_spent |
+| `compile_failure_rate` | errors / attempts |
+| `runtime_errors` | Total runtime errors |
+| `hints_used` | Total hints clicked |
+| `help_dependency` | hints_used / hints_available |
+| `struggle_max` | Peak struggle score |
+| `struggle_trend` | Final score − initial score |
+| `editing_intensity` | chars_deleted / chars_typed |
+| `difficulty` | Easy=0 / Medium=1 / Hard=2 |
+
+### ML Label (Y)
+`minimum_help_required` — integer 0 to 6
 
 ---
 
-## How Export Dataset Works
+## Installing the Extension (for testers)
 
-1. You click **Export Dataset** in the sidebar.
-2. The `ZipDatasetExporter` reads the `dataset/` folder for completed `.json` files (excluding any `.in_progress_session.json`).
-3. VS Code prompts you to choose where to save the ZIP file (defaults to outside the `dataset/` directory so it isn't gitignored).
-4. The `archiver` library compresses the sessions into the `.zip` file on disk.
+Share the `cognitive-coach-0.0.1.vsix` file. Recipients install it by:
+1. Open VS Code → Extensions (`Ctrl+Shift+X`)
+2. Click `...` menu → **Install from VSIX...**
+3. Select the `.vsix` file
+4. Reload VS Code
 
----
-
-## Future Roadmap
-
-### Phase 2: AI Hint Layer
-- Integrate local or API-driven LLM (e.g., Gemini/OpenAI).
-- Replace the placeholder "Counterexample" buttons with real generated counterexamples based on the active editor code.
-- Progressive hint generation (concept → pseudocode → solution).
-
-### Phase 3: ML Training Pipeline
-- Scripts to parse exported ZIP datasets.
-- Feature extraction and struggle prediction modeling.
-
-### Phase 4: Real-time Coaching
-- Live struggle detection → proactive nudges.
-- Adaptive hint difficulty based on student profile.
+Their `dataset/` session files can be collected, zipped, and sent back for training.

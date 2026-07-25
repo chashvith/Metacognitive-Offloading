@@ -10,6 +10,10 @@ dataset/.in_progress_session.json
 
 # Export archives
 *.zip
+*.vsix
+
+# Trained ML models
+model/
 
 # OS junk
 .DS_Store
