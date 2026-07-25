@@ -382,20 +382,38 @@ def generate_session(index, level):
 
 
 if __name__ == "__main__":
-    SESSIONS_PER_CLASS = 200
-    TOTAL = SESSIONS_PER_CLASS * 5
+    TOTAL = 2000
+    
+    # Realistic distribution matching the screenshot
+    DISTRIBUTION = {
+        0: 0.42,  # 42% No Hint
+        1: 0.37,  # 37% Concept Hint
+        2: 0.17,  # 17% Guided Hint
+        3: 0.03,  # 3% Pseudocode
+        4: 0.01,  # 1% Full Solution
+    }
 
-    print(f"Generating {TOTAL} balanced synthetic sessions (5 levels x {SESSIONS_PER_CLASS} each)...")
+    print(f"Generating {TOTAL} synthetic sessions with a REALISTIC distribution...")
 
     idx = 0
-    for level in range(5):
-        for _ in range(SESSIONS_PER_CLASS):
-            generate_session(idx, level)
-            idx += 1
+    counts = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+    
+    # Generate based on weights
+    levels_to_generate = random.choices(
+        list(DISTRIBUTION.keys()),
+        weights=list(DISTRIBUTION.values()),
+        k=TOTAL
+    )
+
+    for level in levels_to_generate:
+        generate_session(idx, level)
+        counts[level] += 1
+        idx += 1
 
     print(f"Done! {TOTAL} files saved to dataset/")
     print()
     print("Hint Label Distribution:")
+    names = ["No Hint", "Concept Hint", "Guided Hint", "Pseudocode", "Full Solution"]
     for lvl in range(5):
-        names = ["No Hint", "Concept Hint", "Guided Hint", "Pseudocode", "Full Solution"]
-        print(f"  Level {lvl} ({names[lvl]}): {SESSIONS_PER_CLASS} sessions ({100/5:.1f}%)")
+        pct = (counts[lvl] / TOTAL) * 100
+        print(f"  Level {lvl} ({names[lvl]}): {counts[lvl]} sessions ({pct:.1f}%)")

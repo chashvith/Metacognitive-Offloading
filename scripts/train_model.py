@@ -1,4 +1,4 @@
-﻿"""
+"""
 train_model.py
 ==============
 Cognitive Coach â€“ ML Training Pipeline
@@ -175,17 +175,19 @@ def train(X: pd.DataFrame, y: pd.Series):
     from xgboost import XGBClassifier
 
     print(f"\nðŸ“Š Dataset: {len(X)} samples, {X.shape[1]} features")
-    print(f"ðŸ“Š Label distribution:\n{y.value_counts().sort_index()}\n")
+    print(f"\n📊 Dataset: {len(X)} samples, {X.shape[1]} features")
+    print(f"📊 Label distribution:\n{y.value_counts().sort_index()}\n")
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # â”€â”€ Model 1: Random Forest â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Model 1: Random Forest ─────────────────────────────────────────────
     rf = RandomForestClassifier(
         n_estimators=200,
         max_depth=None,
         min_samples_split=2,
+        class_weight='balanced',
         random_state=42,
         n_jobs=-1
     )
@@ -195,16 +197,20 @@ def train(X: pd.DataFrame, y: pd.Series):
     rf_cv   = cross_val_score(rf, X, y, cv=5, scoring='accuracy').mean()
 
     print("=" * 60)
-    print(f"ðŸŒ² Random Forest  â€” Test Acc: {rf_acc:.3f}  |  CV-5 Acc: {rf_cv:.3f}")
+    print(f"🌲 Random Forest  — Test Acc: {rf_acc:.3f}  |  CV-5 Acc: {rf_cv:.3f}")
     print("=" * 60)
     print(classification_report(y_test, rf_pred,
-          target_names=[f"Help={i}" for i in range(7)],
+          target_names=[f"Help={i}" for i in range(5)],
           zero_division=0))
 
-    # â”€â”€ Model 2: XGBoost â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Model 2: XGBoost ──────────────────────────────────────────────────
+    from sklearn.utils.class_weight import compute_sample_weight
+    
     le = LabelEncoder()
     y_train_enc = le.fit_transform(y_train)
     y_test_enc  = le.transform(y_test)
+    
+    sample_weights = compute_sample_weight('balanced', y_train_enc)
 
     xgb = XGBClassifier(
         n_estimators=200,
@@ -216,7 +222,7 @@ def train(X: pd.DataFrame, y: pd.Series):
         n_jobs=-1,
         verbosity=0
     )
-    xgb.fit(X_train, y_train_enc, eval_set=[(X_test, y_test_enc)], verbose=False)
+    xgb.fit(X_train, y_train_enc, eval_set=[(X_test, y_test_enc)], sample_weight=sample_weights, verbose=False)
     xgb_pred     = le.inverse_transform(xgb.predict(X_test))
     xgb_acc      = accuracy_score(y_test, xgb_pred)
     y_enc_all    = le.transform(y)
@@ -231,7 +237,7 @@ def train(X: pd.DataFrame, y: pd.Series):
     print(f"âš¡ XGBoost         â€” Test Acc: {xgb_acc:.3f}  |  CV-5 Acc: {xgb_cv:.3f}")
     print("=" * 60)
     print(classification_report(y_test, xgb_pred,
-          target_names=[f"Help={i}" for i in range(7)],
+          target_names=[f"Help={i}" for i in range(5)],
           zero_division=0))
 
     # â”€â”€ Feature Importance (Random Forest) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
