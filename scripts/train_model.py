@@ -182,6 +182,11 @@ def train(X: pd.DataFrame, y: pd.Series):
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
+    # Apply SMOTE to handle class imbalance professionally
+    from imblearn.over_sampling import SMOTE
+    smote = SMOTE(random_state=42)
+    X_train, y_train = smote.fit_resample(X_train, y_train)
+
     # ── Model 1: Random Forest ─────────────────────────────────────────────
     rf = RandomForestClassifier(
         n_estimators=200,

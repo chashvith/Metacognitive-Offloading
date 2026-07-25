@@ -55,78 +55,78 @@ LANGUAGES = ["cpp", "python", "java", "javascript", "go", "csharp"]
 PROFILES = {
     # Level 0: Strong student, solves independently
     0: {
-        "time_spent":       (240, 80),     # 2-6 min
-        "chars_typed":      (280, 60),
-        "chars_deleted":    (25, 12),
-        "pause_count":      (2, 1),
-        "pause_duration":   (12, 6),
-        "compile_attempts": (2, 1),
-        "compile_errors":   (0.3, 0.5),
-        "successful_runs":  (2, 1),
-        "runtime_errors":   (0.2, 0.4),
-        "file_saves":       (4, 2),
-        "idle_time":        (20, 10),
-        "same_error_peak":  (0, 0.3),
+        "time_spent":       (240, 150),    # much more variance
+        "chars_typed":      (280, 100),
+        "chars_deleted":    (25, 25),
+        "pause_count":      (2, 2),
+        "pause_duration":   (12, 10),
+        "compile_attempts": (2, 2),
+        "compile_errors":   (0.3, 0.8),
+        "successful_runs":  (2, 2),
+        "runtime_errors":   (0.2, 0.6),
+        "file_saves":       (4, 3),
+        "idle_time":        (20, 20),
+        "same_error_peak":  (0, 0.5),
     },
     # Level 1: Needs a concept hint (light struggle)
     1: {
-        "time_spent":       (420, 120),    # 5-9 min
-        "chars_typed":      (320, 80),
-        "chars_deleted":    (65, 25),
-        "pause_count":      (5, 2),
-        "pause_duration":   (45, 20),
-        "compile_attempts": (4, 2),
-        "compile_errors":   (1.5, 1),
-        "successful_runs":  (2, 1),
-        "runtime_errors":   (0.8, 0.7),
-        "file_saves":       (6, 3),
-        "idle_time":        (50, 20),
-        "same_error_peak":  (1, 0.5),
+        "time_spent":       (420, 200),
+        "chars_typed":      (320, 120),
+        "chars_deleted":    (65, 40),
+        "pause_count":      (5, 4),
+        "pause_duration":   (45, 30),
+        "compile_attempts": (4, 3),
+        "compile_errors":   (1.5, 1.5),
+        "successful_runs":  (2, 2),
+        "runtime_errors":   (0.8, 1.0),
+        "file_saves":       (6, 4),
+        "idle_time":        (50, 40),
+        "same_error_peak":  (1, 1),
     },
     # Level 2: Needs guided hint (moderate struggle)
     2: {
-        "time_spent":       (660, 180),    # 8-14 min
-        "chars_typed":      (380, 100),
-        "chars_deleted":    (130, 40),
-        "pause_count":      (9, 3),
-        "pause_duration":   (100, 40),
-        "compile_attempts": (7, 3),
-        "compile_errors":   (3, 1.5),
-        "successful_runs":  (2, 1),
-        "runtime_errors":   (2, 1),
-        "file_saves":       (9, 4),
-        "idle_time":        (90, 30),
-        "same_error_peak":  (2, 1),
+        "time_spent":       (660, 250),
+        "chars_typed":      (380, 150),
+        "chars_deleted":    (130, 70),
+        "pause_count":      (9, 5),
+        "pause_duration":   (100, 60),
+        "compile_attempts": (7, 4),
+        "compile_errors":   (3, 2.5),
+        "successful_runs":  (2, 2),
+        "runtime_errors":   (2, 1.5),
+        "file_saves":       (9, 5),
+        "idle_time":        (90, 50),
+        "same_error_peak":  (2, 1.5),
     },
     # Level 3: Needs pseudocode (heavy struggle)
     3: {
-        "time_spent":       (960, 240),    # 12-20 min
-        "chars_typed":      (420, 120),
-        "chars_deleted":    (210, 60),
-        "pause_count":      (14, 4),
-        "pause_duration":   (200, 60),
-        "compile_attempts": (11, 4),
-        "compile_errors":   (5, 2),
-        "successful_runs":  (1, 1),
-        "runtime_errors":   (3, 1.5),
-        "file_saves":       (13, 5),
-        "idle_time":        (150, 40),
-        "same_error_peak":  (3, 1),
+        "time_spent":       (960, 300),
+        "chars_typed":      (420, 180),
+        "chars_deleted":    (210, 100),
+        "pause_count":      (14, 6),
+        "pause_duration":   (200, 90),
+        "compile_attempts": (11, 6),
+        "compile_errors":   (5, 3.5),
+        "successful_runs":  (1, 1.5),
+        "runtime_errors":   (3, 2.5),
+        "file_saves":       (13, 7),
+        "idle_time":        (150, 70),
+        "same_error_peak":  (3, 2),
     },
     # Level 4: Needs full solution (gave up / extreme struggle)
     4: {
-        "time_spent":       (1320, 300),   # 17-27 min
-        "chars_typed":      (480, 150),
-        "chars_deleted":    (320, 80),
-        "pause_count":      (20, 5),
-        "pause_duration":   (350, 90),
-        "compile_attempts": (15, 5),
-        "compile_errors":   (8, 3),
-        "successful_runs":  (0.5, 0.7),
-        "runtime_errors":   (5, 2),
-        "file_saves":       (18, 6),
-        "idle_time":        (250, 70),
-        "same_error_peak":  (4, 1.5),
+        "time_spent":       (1320, 400),
+        "chars_typed":      (480, 220),
+        "chars_deleted":    (320, 140),
+        "pause_count":      (20, 8),
+        "pause_duration":   (350, 150),
+        "compile_attempts": (15, 8),
+        "compile_errors":   (8, 5),
+        "successful_runs":  (0.5, 1.0),
+        "runtime_errors":   (5, 3.5),
+        "file_saves":       (18, 9),
+        "idle_time":        (250, 100),
+        "same_error_peak":  (4, 2.5),
     },
 }
 
@@ -382,7 +382,7 @@ def generate_session(index, level):
 
 
 if __name__ == "__main__":
-    TOTAL = 2000
+    TOTAL = 10000
     
     # Realistic distribution matching the screenshot
     DISTRIBUTION = {
