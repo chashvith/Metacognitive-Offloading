@@ -1,0 +1,28 @@
+{
+  "feature_columns": [
+    "difficulty",
+    "elapsed_time",
+    "progress_ratio",
+    "current_struggle_score",
+    "chars_typed",
+    "chars_deleted",
+    "pause_count",
+    "pause_duration",
+    "compile_attempts",
+    "compile_errors",
+    "successful_runs",
+    "runtime_errors",
+    "deletion_ratio",
+    "typing_speed",
+    "compile_failure_rate",
+    "average_pause_duration",
+    "language_cpp",
+    "language_csharp",
+    "language_go",
+    "language_java",
+    "language_javascript",
+    "language_python",
+    "topic_Unknown",
+    "subtopic_Unknown"
+  ]
+}
