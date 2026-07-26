@@ -1,0 +1,20 @@
+{
+  "model_name": "Hint Prediction Model",
+  "version": "1.0",
+  "algorithm": "XGBoost",
+  "objective": "multi:softprob",
+  "num_classes": 5,
+  "smote_applied": true,
+  "trained_samples": 56568,
+  "train_samples": 51085,
+  "test_samples": 5483,
+  "accuracy": "0.9225",
+  "macro_precision": "0.8502",
+  "macro_recall": "0.8624",
+  "macro_f1": "0.8522",
+  "weighted_f1": "0.9229",
+  "roc_auc": "0.9906",
+  "feature_count": 24,
+  "training_date": "2026-07-25",
+  "status": "ready"
+}

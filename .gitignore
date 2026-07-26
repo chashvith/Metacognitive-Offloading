@@ -4,6 +4,14 @@ out/
 # Dependencies
 node_modules/
 
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Java compiled
+*.class
+
 # Session data (local-only, never committed)
 dataset/**/*.json
 dataset/.in_progress_session.json
@@ -14,3 +22,4 @@ dataset/.in_progress_session.json
 # OS junk
 .DS_Store
 Thumbs.db
+
