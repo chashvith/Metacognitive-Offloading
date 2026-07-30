@@ -10,6 +10,7 @@ import {
   renderSessionControls,
   renderMetricsSection,
   renderEventsSection,
+  renderHintsSection,
   renderCounterexampleSection,
   renderSparklineSection,
   renderRecommendationSection,
@@ -46,6 +47,7 @@ export function renderSidebarHtml(
     renderEventsSection(),
     renderMetricsSection(),
     renderSessionControls(),
+    renderHintsSection(),
     renderCounterexampleSection(),
     renderEndSection(),
   ].join('\n');
