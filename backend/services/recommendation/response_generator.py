@@ -20,7 +20,7 @@ class BaseGenerator(ABC):
     """Abstract Base Class for content generation.
     
     Decouples educational strategy and prompt building from rendering mechanism.
-    Allows seamless swapping between TemplateGenerator and LLMGenerator.
+    Allows seamless swapping between template-based and LLM-backed generators.
     """
 
     @abstractmethod
@@ -150,23 +150,3 @@ class TemplateGenerator(BaseGenerator):
 
         logger.info("TemplateGenerator successfully rendered response for level '%s'", level.value)
         return response
-
-
-class LLMGenerator(BaseGenerator):
-    """Version 2 Interface: Pluggable LLM Generator for future OpenAI/Anthropic/Gemini integration."""
-
-    def __init__(self, api_key: str | None = None, model_name: str = "gemini-flash"):
-        self.api_key = api_key
-        self.model_name = model_name
-
-    def generate(
-        self,
-        prompt: StructuredEducationalPrompt,
-        context: RecommendationContext,
-        concept_knowledge: Dict[str, Any]
-    ) -> RecommendationResponse:
-        """Stub for future LLM API call."""
-        raise NotImplementedError(
-            "LLMGenerator is configured for Version 2. "
-            "Use TemplateGenerator for Version 1 execution."
-        )

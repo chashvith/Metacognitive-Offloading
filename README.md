@@ -1,57 +1,58 @@
 <div align="center">
   <h1>🧠 Cognitive Coach</h1>
-  <p><b>The Metacognitive AI Tutor for the Next Generation of Developers</b></p>
+  <p><b>The Proactive, ML-Driven Pedagogy Engine for Developers</b></p>
   <p>
     <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
     <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" />
     <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" />
-    <img alt="Gemini" src="https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlebard&logoColor=white" />
+    <img alt="Groq" src="https://img.shields.io/badge/Groq-f55036?style=for-the-badge&logo=groq&logoColor=white" />
     <img alt="VS Code" src="https://img.shields.io/badge/VS_Code-0078D4?style=for-the-badge&logo=visual%20studio%20code&logoColor=white" />
   </p>
 </div>
 
 <br/>
 
-> **Cognitive Coach** is an AI-powered educational ecosystem that records how a student solves programming problems, detects cognitive overload in real-time, intervenes with pedagogical hints, and provides teachers with a dashboard to analyze the learning process.
+> Most AI coding assistants just write the code for you. **Cognitive Coach** teaches you how to write it. It is an advanced AI-powered pedagogical ecosystem that tracks keystroke dynamics, predicts cognitive overload using real-time machine learning, and intervenes with context-aware Socratic hints via the ultra-fast Groq API.
 
 ---
 
-## Key Features
+## 🌟 What Makes Cognitive Coach Special?
 
-- **Real-Time Struggle Detection**: The VS Code extension continuously calculates a `struggle_score` based on typing speed, pauses, and compilation errors. It proactively offers a hint when predefined struggle thresholds are reached.
-- **Modern Dashboard for Visualizing Student Telemetry**: A web dashboard that visualizes student telemetry data, charting cognitive load over time and providing insights into problem-solving behavior.
-- **Interactive Session Replay**: Teachers can watch a chronological timeline of exactly where the student paused, errored out, and succeeded, providing context to the telemetry logs.
-- **AI Session Summaries**: The dashboard uses the Google Gemini LLM to analyze the student's telemetry timeline and generate a plain-English summary of their learning journey and core struggles.
-
----
-
-## Project Architecture
-
-Our solution spans across the following components:
-
-1. **Telemetry Extension (VS Code)**
-   - Gathers high-fidelity data (pauses, deletions, errors, hint requests) passively.
-   - Generates a live `struggle_score` using a weighted heuristic algorithm.
-   - Saves anonymized JSON datasets locally.
-
-2. **Intelligence Backend (Python / FastAPI)**
-   - Serves the Teacher Dashboard web application.
-   - Interfaces with the **Google Gemini API** to generate context-aware hints and session summaries based on the student's actual code.
-   - Exposes RESTful endpoints for telemetry ingestion and querying.
-
-3. **Machine Learning Pipeline (Data Science)**
-   - Uses exported JSON datasets to train a Random Forest + XGBoost predictive model.
-   - Predicts the minimum level of pedagogical help a student will need based on historical behavior.
+- **🔮 Predictive "Struggle" ML Engine**: The VS Code extension silently monitors psychometrics (hesitation index, editing intensity, compile failures). If your calculated `struggle_score` crosses a critical threshold, the AI proactively intervenes before you even ask for help.
+- **⚡ Lightning-Fast Llama 3 on Groq**: We migrated our entire backend to Groq for sub-second, structured JSON LLM generations, allowing real-time Socratic tutoring without disrupting the developer's flow.
+- **🛡️ Multi-modal Context Building**: The AI doesn't just see your code; it sees your exact timeline. We feed the LLM a structured snapshot of your behavioral telemetry, recent errors, and hesitation patterns so it acts like a world-class teacher, not an auto-completer.
+- **🎨 Glassmorphism VS Code Native UI**: We built a stunning, custom sidebar right inside VS Code featuring translucent glassmorphism, animated gradients, and interactive components like the **Edge Case Detector (Counterexamples)**.
+- **📊 Teacher Telemetry Dashboard**: A full React/FastAPI local dashboard that visualizes student psychometrics and learning journeys for educators.
 
 ---
 
-## Getting Started
+## 🏗️ Project Architecture
+
+Our solution is a robust, multi-tier ecosystem:
+
+1. **Telemetry Engine (VS Code Extension)**
+   - Passively tracks high-fidelity data (pauses, deletions, compile errors).
+   - Renders a native, dynamic React-style webview UI inside the editor.
+   - Calculates real-time ML heuristics to gauge cognitive load.
+
+2. **Pedagogy Backend (Python / FastAPI)**
+   - Interfaces directly with the **Groq API (Llama-3.3-70b-versatile)** to generate structured, pedagogical interventions.
+   - Handles LLM orchestration, structured JSON parsing, and graceful fallbacks.
+   - Serves the Teacher Dashboard and exposes RESTful endpoints for telemetry ingestion.
+
+3. **Data Science Pipeline**
+   - Uses exported JSON telemetry datasets to train XGBoost predictive models.
+   - Predicts the exact minimum level of help a student needs (e.g., *Hint 1*, *Concept Explanation*, or *Pseudocode*).
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 - **Node.js** (v18+)
 - **Python** (v3.10+)
 - **Visual Studio Code** (v1.96+)
-- **Google Gemini API Key** (Set as `GEMINI_API_KEY` in `backend/.env`)
+- **Groq API Key** (Set as `GROQ_API_KEY` in `backend/.env`)
 
 ### 1. Launch the VS Code Extension
 ```bash
@@ -63,21 +64,22 @@ npm run build
 1. Open the repository folder in VS Code.
 2. Press **F5** to launch the Extension Development Host.
 3. In the new window, click the **Cognitive Coach** icon in the Activity Bar.
-4. Click **Start Problem** and start coding.
+4. Click **▶ Start Problem** to begin the telemetry engine and unlock the AI hint features!
 
-### 2. Launch the Teacher Dashboard
+### 2. Launch the Pedagogy Backend
 Open a new terminal in the project root:
 ```bash
-pip install -r backend/requirements.txt
-python backend/app.py
+cd backend
+pip install -r requirements.txt
+python app.py
 ```
-Open your browser to [http://localhost:8000/static/index.html](http://localhost:8000/static/index.html).
+*(The backend will run on `http://localhost:8000`)*
 
 ---
 
-## Machine Learning Pipeline
+## 📈 The Machine Learning Model
 
-We train our models on features derived from the student's raw keystroke timeline to understand student cognition:
+We train our models on features derived from the student's raw keystroke timeline to understand human cognition:
 
 | Feature | Description |
 |---------|-------------|
@@ -87,8 +89,6 @@ We train our models on features derived from the student's raw keystroke timelin
 | `typing_speed` | Keystrokes per active minute |
 | `struggle_max` | The peak cognitive struggle score |
 | `help_dependency` | Ratio of hints used vs hints available |
-
-**Objective:** Predict the `minimum_help_required` (0 = Fully Independent, 6 = Could Not Solve).
 
 To run the pipeline locally:
 ```bash

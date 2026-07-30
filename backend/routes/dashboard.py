@@ -3,7 +3,7 @@ import os
 import json
 from pathlib import Path
 from typing import List
-from services.llm.gemini_client import gemini_client
+from services.llm.groq_client import groq_client
 
 router = APIRouter(
     prefix="/api",
@@ -48,7 +48,7 @@ def get_session(session_id: str):
 
 @router.post("/sessions/{session_id}/summary")
 def generate_session_summary(session_id: str):
-    """Generates a 3-sentence AI summary of the student's session using Gemini."""
+    """Generates a 3-sentence AI summary of the student's session using Groq."""
     if not session_id.endswith(".json"):
         session_id += ".json"
         
@@ -72,7 +72,7 @@ def generate_session_summary(session_id: str):
         
         user_prompt = f"Session Metrics: {json.dumps(metrics)}\nTimeline: {json.dumps(timeline)}"
         
-        result = gemini_client.generate_structured_json(system_prompt, user_prompt)
+        result = groq_client.generate_structured_json(system_prompt, user_prompt)
         
         if result and "summary" in result:
             return {"summary": result["summary"]}

@@ -109,16 +109,6 @@
         "category": "Cognitive Coach"
       },
       {
-        "command": "cognitiveCoach.showCounterexample",
-        "title": "Show Counterexample",
-        "category": "Cognitive Coach"
-      },
-      {
-        "command": "cognitiveCoach.counterexampleResolved",
-        "title": "Counterexample Resolved",
-        "category": "Cognitive Coach"
-      },
-      {
         "command": "cognitiveCoach.getRecommendation",
         "title": "Get Recommendation",
         "category": "Cognitive Coach",
@@ -144,6 +134,11 @@
         },
         {
           "command": "cognitiveCoach.exportDataset",
+          "when": "view == cognitiveCoach.sidebar",
+          "group": "navigation"
+        },
+        {
+          "command": "cognitiveCoach.compileError",
           "when": "view == cognitiveCoach.sidebar",
           "group": "navigation"
         },

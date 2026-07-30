@@ -308,10 +308,6 @@ export class SessionManager {
     this.session.same_error_peak = metrics.sameErrorPeak;
     this.session.struggle_scores = metrics.struggleScores;
 
-    this.session.counterexample_shown_count = metrics.counterexampleShownCount;
-    this.session.time_to_resolution_after_counterexample =
-      metrics.timeToResolutionAfterCounterexample;
-
     this.session.status = finalStatus || 'Ended_incomplete';
     
     // ML derived metrics
@@ -435,7 +431,7 @@ export class SessionManager {
    * via recommendationStatus/recommendationError rather than thrown, so a
    * down backend never disrupts telemetry collection or session recording.
    */
-  async requestRecommendation(explicitHintType?: EventType): Promise<void> {
+  async requestRecommendation(explicitHintType?: EventType, isRegeneration: boolean = false): Promise<void> {
     if (!this.session || !this.tracker || !this.timeline) {
       vscode.window.showWarningMessage(
         'No active session. Start a problem first.'
@@ -467,6 +463,8 @@ export class SessionManager {
         fullPrediction,
         explicitHintType
       );
+      // Add regeneration flag (will pass to backend)
+      (recommendationRequest as any).is_regeneration = isRegeneration;
       const recommendation = await backendClient.recommend(
         recommendationRequest
       );
@@ -490,26 +488,17 @@ export class SessionManager {
   }
 
   /**
-   * Show a counterexample (placeholder — logs event + shows dummy test case).
-   * Person B replaces the dummy data with a real Gemini API call on Day 2–3.
+   * Submit hint feedback (thumbs up/down)
    */
-  recordCounterexampleShown(): void {
-    if (!this.tracker) { return; }
-    this.tracker.recordCounterexampleShown();
-    this.persistInProgressNow();
-
-    // Placeholder: show a dummy counterexample in an info message
-    vscode.window.showInformationMessage(
-      '⚡ Counterexample: Input=[2,7,11,15], Target=9 → Expected=[0,1]\n' +
-        '(Placeholder — real test case generation coming Day 2–3)'
-    );
-  }
-
-  /** Record that the student resolved the counterexample */
-  recordCounterexampleResolved(): void {
-    if (!this.tracker) { return; }
-    this.tracker.recordCounterexampleResolved();
-    this.persistInProgressNow();
+  async submitFeedback(rating: string): Promise<void> {
+    try {
+      if (!this.session) return;
+      // We'll call the backend client once it's implemented.
+      await backendClient.submitFeedback(this.session.session_id, rating);
+      vscode.window.setStatusBarMessage(`✓ Feedback recorded: ${rating}`, 2000);
+    } catch (err) {
+      console.error('Failed to submit feedback', err);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -628,7 +617,30 @@ export class SessionManager {
   private startPersistTimer(): void {
     this.persistTimer = setInterval(() => {
       this.persistInProgressNow();
+      this.checkAutomatedHintTrigger();
     }, PERSIST_INTERVAL_MS);
+  }
+
+  private lastAutoHintTime: number = 0;
+
+  /** Trigger automated hint if conditions are met (idle or stuck) */
+  private checkAutomatedHintTrigger(): void {
+    if (!this.tracker || !isAutoRecommendEnabled() || this.recommendationStatus === 'loading') return;
+    
+    const now = Date.now();
+    // Don't auto-trigger more than once every 2 minutes
+    if (now - this.lastAutoHintTime < 120_000) return;
+
+    const metrics = this.tracker.getMetrics();
+    const currentScore = metrics.struggleScores.length > 0 ? metrics.struggleScores[metrics.struggleScores.length - 1].score : 0;
+    const isIdle = metrics.idleTime > 60 && this.timeline?.getElapsedSeconds()! > 60;
+    const isStruggling = currentScore > 0.75;
+
+    if (isIdle || isStruggling) {
+      this.lastAutoHintTime = now;
+      vscode.window.setStatusBarMessage('🎓 AI Coach noticed you might be stuck. Generating hint...', 3000);
+      void this.requestRecommendation();
+    }
   }
 
   /** Stop the persistence timer */
@@ -726,8 +738,6 @@ export class SessionManager {
       independent_fix_rate: 1.0,
       same_error_peak: 0,
       struggle_scores: [],
-      counterexample_shown_count: 0,
-      time_to_resolution_after_counterexample: null,
       status: 'Recording',
       timeline: [],
     };

@@ -52,7 +52,7 @@ export function renderRecommendationSection(): string {
           <button class="ctrl-btn" id="copyBtn" onclick="copyRecommendation()" title="Copy explanation">
             📋 Copy
           </button>
-          <button class="ctrl-btn" id="regenBtn" data-command="cognitiveCoach.getRecommendation" title="Regenerate explanation">
+          <button class="ctrl-btn" id="regenBtn" data-command="cognitiveCoach.regenerateHint" title="Regenerate explanation">
             🔄 Regenerate
           </button>
           <button class="ctrl-btn" id="thumbsUpBtn" onclick="rateRecommendation('up')" title="Helpful">

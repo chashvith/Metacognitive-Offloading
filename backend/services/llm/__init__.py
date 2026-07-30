@@ -1,5 +1,5 @@
-"""Gemini LLM Service package."""
+"""Groq LLM Service package."""
 
-from .gemini_client import GeminiClient, gemini_client
+from .groq_client import GroqClient, groq_client
 
-__all__ = ["GeminiClient", "gemini_client"]
+__all__ = ["GroqClient", "groq_client"]

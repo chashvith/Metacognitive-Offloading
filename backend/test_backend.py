@@ -1,4 +1,4 @@
 from config import settings
 
-print(settings.GEMINI_MODEL_NAME)
-print(settings.GEMINI_API_KEY[:10])
+print(settings.GROQ_MODEL_NAME)
+print(settings.GROQ_API_KEY[:10])

@@ -61,7 +61,13 @@ class StructuredPromptBuilder:
         pause_duration = context.session.pause_duration
         chars_typed = context.session.chars_typed
         chars_deleted = context.session.chars_deleted
+        runtime_errors = context.session.runtime_errors
         progress_ratio = raw_snap.get("progress_ratio", 0.0)
+        last_error_message = raw_snap.get("lastErrorMessage", "")
+        
+        regeneration_directive = ""
+        if context.is_regeneration:
+            regeneration_directive = "\nWARNING: The user explicitly requested to REGENERATE this hint. You MUST provide a significantly different perspective or a new approach compared to previous hints.\n"
 
         concept_name = concept_knowledge.get("name", context.problem.topic)
         explanation = concept_knowledge.get("explanation", "")
@@ -80,8 +86,11 @@ class StructuredPromptBuilder:
             f"Current Struggle Score: {struggle_score:.2f}\n"
             f"Progress Ratio: {progress_ratio:.2f}\n"
             f"Compile Attempts: {compile_attempts} | Compile Errors: {compile_errors}\n"
+            f"Runtime Errors: {runtime_errors}\n"
+            f"Last Error Message: {last_error_message}\n"
             f"Characters Typed: {chars_typed} | Deleted: {chars_deleted}\n"
-            f"Total Pause Duration: {pause_duration:.1f}s\n\n"
+            f"Total Pause Duration: {pause_duration:.1f}s\n"
+            f"{regeneration_directive}\n"
             f"--- STUDENT CURRENT CODE ---\n"
             f"```{context.problem.language}\n{student_code}\n```\n"
         )

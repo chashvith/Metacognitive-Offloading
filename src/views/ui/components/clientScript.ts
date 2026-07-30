@@ -63,9 +63,11 @@ export function getClientScript(): string {
       if (type === 'up') {
         upBtn.classList.toggle('active');
         downBtn.classList.remove('active');
+        send(upBtn.classList.contains('active') ? 'cognitiveCoach.rateHintUp' : 'cognitiveCoach.rateHintClear');
       } else {
         downBtn.classList.toggle('active');
         upBtn.classList.remove('active');
+        send(downBtn.classList.contains('active') ? 'cognitiveCoach.rateHintDown' : 'cognitiveCoach.rateHintClear');
       }
     };
 

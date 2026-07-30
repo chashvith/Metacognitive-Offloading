@@ -26,6 +26,10 @@ export function renderSessionControls(): string {
               data-command="cognitiveCoach.exportDataset">
         📦 Export Dataset
       </button>
+      <button class="btn btn-secondary"
+              data-command="cognitiveCoach.openDashboard">
+        📊 Student Dashboard
+      </button>
     </div>
   </div>`;
 }

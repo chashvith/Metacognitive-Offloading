@@ -10,23 +10,23 @@ from schemas.recommendation import (
     HintLevelEnum,
     TeachingStrategy,
 )
-from services.llm.gemini_client import gemini_client, GeminiClient
+from services.llm.groq_client import groq_client, GroqClient
 from .response_generator import BaseGenerator, TemplateGenerator
 
 logger = logging.getLogger(__name__)
 
 
 class HybridGenerator(BaseGenerator):
-    """Hybrid recommendation generator that attempts Google Gemini 2.5 Flash API calls
+    """Hybrid recommendation generator that attempts Groq API calls
     and seamlessly falls back to TemplateGenerator upon any error, timeout, or policy violation.
     """
 
     def __init__(
         self,
-        client: Optional[GeminiClient] = None,
+        client: Optional[GroqClient] = None,
         fallback_generator: Optional[TemplateGenerator] = None,
     ):
-        self.client = client or gemini_client
+        self.client = client or groq_client
         self.fallback = fallback_generator or TemplateGenerator()
 
     def generate(
@@ -35,13 +35,13 @@ class HybridGenerator(BaseGenerator):
         context: RecommendationContext,
         concept_knowledge: Dict[str, Any]
     ) -> RecommendationResponse:
-        """Generates structured educational recommendation using Gemini, with Template fallback."""
+        """Generates structured educational recommendation using Groq API, with Template fallback."""
         strategy = prompt.teaching_strategy
 
         try:
-            logger.info("HybridGenerator: Attempting LLM recommendation generation via Gemini 2.5 Flash...")
+            logger.info("HybridGenerator: Attempting LLM recommendation generation via Groq API...")
             
-            # Build unified text prompt for Gemini
+            # Build unified text prompt for LLM
             full_user_prompt = (
                 f"{prompt.problem_context_summary}\n\n"
                 f"{prompt.concept_knowledge_summary}\n\n"
@@ -71,7 +71,7 @@ class HybridGenerator(BaseGenerator):
             logger.warning("HybridGenerator: LLM generation returned invalid or empty payload. Falling back to TemplateGenerator.")
 
         except Exception as e:
-            logger.error("HybridGenerator: Exception during Gemini execution: %s. Falling back to TemplateGenerator.", e)
+            logger.error("HybridGenerator: Exception during Groq execution: %s. Falling back to TemplateGenerator.", e)
 
         # Fallback to TemplateGenerator
         logger.info("HybridGenerator: Executing fallback to TemplateGenerator.")
@@ -121,7 +121,7 @@ class HybridGenerator(BaseGenerator):
             "solver_prediction": context.prediction.solver_prediction,
             "hint_prediction": context.prediction.hint_prediction,
             "confidence": context.prediction.hint_confidence,
-            "generator_type": "Gemini_2.5_Flash",
+            "generator_type": "Groq_API",
         }
 
         return RecommendationResponse(

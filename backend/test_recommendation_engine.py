@@ -18,7 +18,8 @@ from services.recommendation.context_builder import RecommendationContextBuilder
 from services.recommendation.policy_engine import PolicyEngine
 from services.recommendation.knowledge_base import ConceptKnowledgeBase
 from services.recommendation.prompt_builder import StructuredPromptBuilder
-from services.recommendation.response_generator import TemplateGenerator, LLMGenerator
+from services.recommendation.response_generator import TemplateGenerator
+from services.recommendation.llm_generator import LLMGenerator
 from services.recommendation.validator import RecommendationValidator
 from services.recommendation.recommendation_service import recommendation_service
 
@@ -192,12 +193,11 @@ def test_response_generator():
     assert res_full.complexity is not None
     print("  [OK] TemplateGenerator Full Solution PASSED.")
 
-    # Test LLMGenerator V2 Interface stub
-    try:
-        llm_gen.generate(prompt_full, ctx_full, concept_data)
-        assert False, "Expected NotImplementedError for LLMGenerator in V1"
-    except NotImplementedError:
-        print("  [OK] LLMGenerator V2 interface stub assertion PASSED.")
+    # Test LLMGenerator wrapper delegation
+    res_llm = llm_gen.generate(prompt_full, ctx_full, concept_data)
+    assert res_llm.level == "full_solution"
+    assert res_llm.title is not None
+    print("  [OK] LLMGenerator wrapper delegation PASSED.")
 
 
 def test_validator():

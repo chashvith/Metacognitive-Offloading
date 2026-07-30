@@ -45,10 +45,6 @@ export enum EventType {
   PseudocodeRequested = 'pseudocode_requested',
   SolutionRequested = 'solution_requested',
 
-  // Counterexample events (placeholder buttons wired Day 1, AI drop-in Day 2–3)
-  CounterexampleShown = 'counterexample_shown',
-  CounterexampleResolved = 'counterexample_resolved',
-
   // Error pattern tracking
   SameErrorRepeated = 'same_error_repeated',
 }
@@ -184,9 +180,6 @@ export interface Session {
 
   same_error_peak: number | null;
   struggle_scores: StruggleScoreEntry[];
-
-  counterexample_shown_count: number | null;
-  time_to_resolution_after_counterexample: number | null;
 
   status: SessionStatus;
   timeline: TimelineEvent[];
@@ -334,9 +327,6 @@ export interface TrackerState {
   lastErrorMessage: string;
   currentErrorStreak: number;
   sameErrorPeak: number;
-  counterexampleShownTime: number | null;
-  counterexampleShownCount: number;
-  timeToResolutionAfterCounterexample: number | null;
   hintsAvailable: number;
   hintsUsed: number;
   struggleScores: StruggleScoreEntry[];

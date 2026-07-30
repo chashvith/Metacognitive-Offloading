@@ -74,6 +74,7 @@ class SessionContext(BaseModel):
     struggle_score: float = Field(default=0.0, ge=0.0, description="Calculated struggle score")
     compile_attempts: int = Field(default=0, ge=0, description="Total compile attempts")
     compile_errors: int = Field(default=0, ge=0, description="Compilation failure count")
+    runtime_errors: int = Field(default=0, ge=0, description="Runtime execution failure count")
     pause_duration: float = Field(default=0.0, ge=0.0, description="Total duration of editing pauses in seconds")
     chars_typed: int = Field(default=0, ge=0, description="Characters typed")
     chars_deleted: int = Field(default=0, ge=0, description="Characters deleted")
@@ -86,7 +87,7 @@ class RecommendationContext(BaseModel):
     student: StudentContext = Field(default_factory=StudentContext)
     prediction: PredictionContext = Field(default_factory=PredictionContext)
     session: SessionContext = Field(default_factory=SessionContext)
-
+    is_regeneration: bool = Field(default=False, description="Whether this is a regenerated hint")
 
 # --- Policy & Teaching Strategy Schemas ---
 
@@ -128,6 +129,7 @@ class RecommendationRequest(BaseModel):
     hint_prediction: Optional[str] = None
     hint_confidence: Optional[float] = None
     snapshot: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Student session telemetry snapshot")
+    is_regeneration: Optional[bool] = Field(default=False, description="Flag if this is a request to regenerate the hint")
 
 
 class RecommendationResponse(BaseModel):
@@ -143,3 +145,8 @@ class RecommendationResponse(BaseModel):
     complexity: Optional[Dict[str, str]] = Field(default=None, description="Time & space complexity (only for full_solution)")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Execution metadata")
     status: str = Field(default="success")
+
+class FeedbackRequest(BaseModel):
+    """API payload for /feedback endpoint."""
+    session_id: str
+    rating: str

@@ -110,4 +110,12 @@ export const backendClient = {
   ): Promise<RecommendationResult> {
     return postJson<RecommendationResult>('/recommend', payload);
   },
+
+  /** POST /feedback — submits user feedback for a hint. */
+  submitFeedback(
+    sessionId: string,
+    rating: string
+  ): Promise<{ status: string }> {
+    return postJson<{ status: string }>('/feedback', { session_id: sessionId, rating });
+  },
 };

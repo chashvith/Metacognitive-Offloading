@@ -16,6 +16,9 @@ export function renderEventsSection(): string {
         <button class="ai-action-btn primary" id="btnExplain" data-command="cognitiveCoach.getRecommendation">
           🤖 Get AI Guidance
         </button>
+        <button class="ai-action-btn" id="btnCompileError" data-command="cognitiveCoach.compileError">
+          ✗ Compile Error
+        </button>
         <button class="ai-action-btn" id="btnConcept" data-command="cognitiveCoach.conceptHint">
           📖 Teach Me
         </button>

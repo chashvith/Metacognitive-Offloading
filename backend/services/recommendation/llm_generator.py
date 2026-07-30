@@ -1,4 +1,4 @@
-"""LLM Generator Module wrapping GeminiClient."""
+"""LLM Generator Module wrapping GroqClient."""
 
 import logging
 from typing import Any, Dict
@@ -7,7 +7,7 @@ from schemas.recommendation import (
     StructuredEducationalPrompt,
     RecommendationResponse,
 )
-from services.llm.gemini_client import gemini_client, GeminiClient
+from services.llm.groq_client import groq_client, GroqClient
 from .response_generator import BaseGenerator
 from .hybrid_generator import HybridGenerator
 
@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class LLMGenerator(BaseGenerator):
-    """LLM Generator implementation wrapping GeminiClient."""
+    """LLM Generator implementation wrapping GroqClient."""
 
-    def __init__(self, client: GeminiClient = gemini_client):
+    def __init__(self, client: GroqClient = groq_client):
         self.hybrid = HybridGenerator(client=client)
 
     def generate(

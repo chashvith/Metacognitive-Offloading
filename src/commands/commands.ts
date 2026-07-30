@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import { SessionManager } from '../session/SessionManager';
 import { EventType } from '../types';
 import { ZipDatasetExporter } from '../export/DatasetExporter';
+import { getBackendBaseUrl } from '../config';
 
 /**
  * Register all Cognitive Coach commands and return the disposables.
@@ -34,17 +35,25 @@ export function registerCommands(
     )
   );
 
+  const datasetExporter = new ZipDatasetExporter();
+
   disposables.push(
     vscode.commands.registerCommand('cognitiveCoach.exportSession', () =>
       manager.exportLastSession()
     )
   );
 
-  const datasetExporter = new ZipDatasetExporter();
   disposables.push(
     vscode.commands.registerCommand('cognitiveCoach.exportDataset', () =>
       datasetExporter.exportDataset()
     )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand('cognitiveCoach.openDashboard', () => {
+      const dashboardUrl = `${getBackendBaseUrl()}/static/index.html`;
+      vscode.env.openExternal(vscode.Uri.parse(dashboardUrl));
+    })
   );
 
   // ── Compile / Run events (manual) ────────────────────────────────────────
@@ -150,30 +159,6 @@ export function registerCommands(
     })
   );
 
-  // ── Counterexample events (placeholder buttons) ──────────────────────────
-
-  disposables.push(
-    vscode.commands.registerCommand('cognitiveCoach.showCounterexample', () => {
-      if (!manager.isRecording) {
-        vscode.window.showWarningMessage('No active session. Start a problem first.');
-        return;
-      }
-      manager.recordCounterexampleShown();
-      vscode.window.setStatusBarMessage('⚡ Counterexample shown', 2000);
-    })
-  );
-
-  disposables.push(
-    vscode.commands.registerCommand('cognitiveCoach.counterexampleResolved', () => {
-      if (!manager.isRecording) {
-        vscode.window.showWarningMessage('No active session. Start a problem first.');
-        return;
-      }
-      manager.recordCounterexampleResolved();
-      vscode.window.setStatusBarMessage('✓ Counterexample resolved', 2000);
-    })
-  );
-
   // ── Backend recommendation (manual trigger) ──────────────────────────────
 
   disposables.push(
@@ -184,6 +169,35 @@ export function registerCommands(
       }
       vscode.window.setStatusBarMessage('🎓 Requesting recommendation…', 2000);
       manager.requestRecommendation();
+    })
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand('cognitiveCoach.regenerateHint', () => {
+      if (!manager.isRecording) return;
+      vscode.window.setStatusBarMessage('🎓 Regenerating recommendation…', 2000);
+      manager.requestRecommendation(undefined, true);
+    })
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand('cognitiveCoach.rateHintUp', () => {
+      if (!manager.isRecording) return;
+      manager.submitFeedback('up');
+    })
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand('cognitiveCoach.rateHintDown', () => {
+      if (!manager.isRecording) return;
+      manager.submitFeedback('down');
+    })
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand('cognitiveCoach.rateHintClear', () => {
+      if (!manager.isRecording) return;
+      manager.submitFeedback('clear');
     })
   );
 

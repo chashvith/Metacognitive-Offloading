@@ -53,6 +53,7 @@ class RecommendationContextBuilder:
             struggle_score=float(snapshot.get("current_struggle_score", 0.0)),
             compile_attempts=int(snapshot.get("compile_attempts", 0)),
             compile_errors=int(snapshot.get("compile_errors", 0)),
+            runtime_errors=int(snapshot.get("runtime_errors", 0)),
             pause_duration=float(snapshot.get("pause_duration", 0.0)),
             chars_typed=int(snapshot.get("chars_typed", 0)),
             chars_deleted=int(snapshot.get("chars_deleted", 0)),
@@ -92,6 +93,7 @@ class RecommendationContextBuilder:
             student=student,
             prediction=prediction,
             session=session,
+            is_regeneration=request.is_regeneration or False,
         )
 
         logger.debug("Built RecommendationContext: %s", context.model_dump())

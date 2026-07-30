@@ -5,20 +5,23 @@
 
 export function renderHintsSection(): string {
   return /*html*/ `
-  <!-- ── Hints ───────────────────────────────────────────────────── -->
-  <div class="section" id="hintsSection" style="display:none;">
-    <h3>Hints</h3>
-    <div class="button-group">
-      <button class="btn btn-hint"
-              data-command="cognitiveCoach.hint1">💡 Hint 1</button>
-      <button class="btn btn-hint"
-              data-command="cognitiveCoach.hint2">💡 Hint 2</button>
-      <button class="btn btn-hint"
-              data-command="cognitiveCoach.conceptHint">📖 Concept</button>
-      <button class="btn btn-hint"
-              data-command="cognitiveCoach.pseudocode">📝 Pseudocode</button>
-      <button class="btn btn-hint"
-              data-command="cognitiveCoach.solution">🔑 Solution</button>
+  <!-- ── 💡 OP Hints Card ────────────────────────────────────────── -->
+  <div class="card" id="hintsSection" style="display:none;">
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-title">💡 Deep Dive Hints</div>
+      <span class="accordion-icon">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="button-group">
+        <button class="btn btn-primary"
+                data-command="cognitiveCoach.hint1" style="font-size: 14px; padding: 12px; margin-bottom: 8px;">
+          🚀 GIVE ME A HINT
+        </button>
+        <button class="btn btn-secondary"
+                data-command="cognitiveCoach.hint2">💡 Hint 2 (Deeper)</button>
+        <button class="btn btn-secondary"
+                data-command="cognitiveCoach.conceptHint">📖 Explain Concept</button>
+      </div>
     </div>
   </div>`;
 }

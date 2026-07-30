@@ -54,11 +54,6 @@ export class TelemetryTracker {
   private currentErrorStreak: number = 0;
   private sameErrorPeak: number = 0;
 
-  // ── Counterexample tracking ──────────────────────────────────────────────
-  private counterexampleShownTime: number | null = null;
-  private counterexampleShownCount: number = 0;
-  private timeToResolutionAfterCounterexample: number | null = null;
-
   // ── Hints offered vs. used ───────────────────────────────────────────────
   private hintsAvailable: number = 0;
   private hintsUsed: number = 0;
@@ -94,41 +89,6 @@ export class TelemetryTracker {
       vscode.workspace.onDidChangeTextDocument((e) => this.onTextChange(e))
     );
 
-    // File saves
-    this.disposables.push(
-      vscode.workspace.onDidSaveTextDocument((doc) => this.onFileSave(doc))
-    );
-
-    // Active editor changes (file switching)
-    this.disposables.push(
-      vscode.window.onDidChangeActiveTextEditor((editor) =>
-        this.onEditorChange(editor)
-      )
-    );
-
-    // Task/debug process starts (auto-detected compile/run via VS Code tasks panel)
-    this.disposables.push(
-      vscode.tasks.onDidStartTaskProcess((e) => this.onTaskStart(e))
-    );
-    this.disposables.push(
-      vscode.tasks.onDidEndTaskProcess((e) => this.onTaskEnd(e))
-    );
-
-    // ── Approach 1: Shell Integration (VS Code 1.93+, requires shell to support it)
-    // Works automatically when shell integration is injected. Gives us the
-    // exact exit code for any command. May silently not fire on some Windows
-    // setups — Approach 2 is the fallback.
-    if (vscode.window.onDidEndTerminalShellExecution) {
-      this.disposables.push(
-        vscode.window.onDidEndTerminalShellExecution((e) =>
-          this.onTerminalExecutionEnd(e)
-        )
-      );
-    }
-
-    // ── Approach 2: Stream command output via execution.read()
-    // When shell integration fires onDidStartTerminalShellExecution, we read
-    // the output stream for that specific command and scan it for error patterns.
     if (vscode.window.onDidStartTerminalShellExecution) {
       this.disposables.push(
         vscode.window.onDidStartTerminalShellExecution((e) =>
@@ -136,6 +96,16 @@ export class TelemetryTracker {
         )
       );
     }
+
+    // ── Diagnostics (Compile Errors) ──────────────────────────────────────────
+    this.disposables.push(
+      vscode.languages.onDidChangeDiagnostics((e) => this.onDiagnosticsChange(e))
+    );
+
+    // ── Debug Sessions (Runtime Errors) ───────────────────────────────────────
+    this.disposables.push(
+      vscode.debug.onDidTerminateDebugSession((session) => this.onDebugSessionEnd(session))
+    );
 
   }
 
@@ -558,42 +528,6 @@ export class TelemetryTracker {
   }
 
   /**
-   * Record a counterexample being shown (placeholder — logs event + dummy test case).
-   * Person B drops the real Gemini call into this same slot on Day 2–3.
-   */
-  recordCounterexampleShown(): void {
-    this.flushTypingEvents();
-    this.counterexampleShownCount++;
-    this.counterexampleShownTime = Date.now();
-    this.timeline.push(EventType.CounterexampleShown, 'manual', {
-      // Placeholder dummy test case — replaced when AI layer lands
-      test_case: {
-        input: [2, 7, 11, 15],
-        target: 9,
-        expected: [0, 1],
-      },
-    });
-    this.computeStruggleScore(EventType.CounterexampleShown);
-  }
-
-  /**
-   * Record a counterexample being resolved by the student.
-   * Computes time-to-resolution — the core hypothesis metric.
-   */
-  recordCounterexampleResolved(): void {
-    this.flushTypingEvents();
-    if (this.counterexampleShownTime !== null) {
-      this.timeToResolutionAfterCounterexample = Math.round(
-        (Date.now() - this.counterexampleShownTime) / 1000
-      );
-    }
-    this.timeline.push(EventType.CounterexampleResolved, 'manual', {
-      resolution_time_seconds: this.timeToResolutionAfterCounterexample,
-    });
-    this.computeStruggleScore(EventType.CounterexampleResolved);
-  }
-
-  /**
    * Record that a hint was made available (offered by system).
    * Used for the "hints offered vs. hints used" metric.
    */
@@ -694,7 +628,7 @@ export class TelemetryTracker {
             "Yes, please", "No, thanks"
         ).then(selection => {
             if (selection === "Yes, please") {
-                vscode.commands.executeCommand('cognitive-coach.recommendHint');
+                vscode.commands.executeCommand('cognitiveCoach.getRecommendation');
             }
         });
     }
@@ -749,9 +683,6 @@ export class TelemetryTracker {
       fileOpenCount: this.fileOpenCount,
       autoCompileAttempts: this.autoCompileAttempts,
       sameErrorPeak: this.sameErrorPeak,
-      counterexampleShownCount: this.counterexampleShownCount,
-      timeToResolutionAfterCounterexample:
-        this.timeToResolutionAfterCounterexample,
       hintsAvailable: this.hintsAvailable,
       hintsUsed: this.hintsUsed,
       independentFixRate: this.computeIndependentFixRate(),
@@ -759,9 +690,31 @@ export class TelemetryTracker {
     };
   }
 
+  // ── Diagnostics & Debug Runtime Errors ─────────────────────────────────────
+  
+  private onDiagnosticsChange(e: vscode.DiagnosticChangeEvent): void {
+    if (!this.trackedDocumentUri) return;
+    
+    // Check if the change affected our tracked document
+    const uri = vscode.Uri.parse(this.trackedDocumentUri);
+    if (e.uris.some(u => u.toString() === uri.toString())) {
+      const diagnostics = vscode.languages.getDiagnostics(uri);
+      // Filter for errors (Severity 0 is Error in VS Code)
+      const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+      
+      if (errors.length > 0) {
+        this.recordCompileError(errors[0].message, 'automatic');
+      }
+    }
+  }
+
+  private onDebugSessionEnd(session: vscode.DebugSession): void {
+    this.recordRuntimeError(`Debug session ended: ${session.name}`, 'automatic');
+  }
+
   /**
-   * Independent fix rate: did they resolve it themselves after the
-   * counterexample, or did they need the full progressive hint ladder?
+  * Independent fix rate: did they solve it without relying on hints, or did
+  * they need the full progressive hint ladder?
    * This is the actual success metric for the whole pitch.
    *
    * = 1.0 if no hints were available (solved independently)
@@ -795,10 +748,6 @@ export class TelemetryTracker {
       lastErrorMessage: this.lastErrorMessage,
       currentErrorStreak: this.currentErrorStreak,
       sameErrorPeak: this.sameErrorPeak,
-      counterexampleShownTime: this.counterexampleShownTime,
-      counterexampleShownCount: this.counterexampleShownCount,
-      timeToResolutionAfterCounterexample:
-        this.timeToResolutionAfterCounterexample,
       hintsAvailable: this.hintsAvailable,
       hintsUsed: this.hintsUsed,
       struggleScores: this.struggleScores,
@@ -826,10 +775,6 @@ export class TelemetryTracker {
     tracker.lastErrorMessage = data.lastErrorMessage ?? '';
     tracker.currentErrorStreak = data.currentErrorStreak ?? 0;
     tracker.sameErrorPeak = data.sameErrorPeak ?? 0;
-    tracker.counterexampleShownTime = data.counterexampleShownTime ?? null;
-    tracker.counterexampleShownCount = data.counterexampleShownCount ?? 0;
-    tracker.timeToResolutionAfterCounterexample =
-      data.timeToResolutionAfterCounterexample ?? null;
     tracker.hintsAvailable = data.hintsAvailable ?? 0;
     tracker.hintsUsed = data.hintsUsed ?? 0;
     tracker.struggleScores = data.struggleScores ?? [];
