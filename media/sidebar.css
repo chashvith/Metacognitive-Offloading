@@ -18,6 +18,7 @@ body {
   background-color: transparent;
   padding: 12px;
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
 /* ── Dashboard Card Containers ────────────────────────────────────────────── */
@@ -48,6 +49,8 @@ body {
   margin-bottom: 10px;
   cursor: pointer;
   user-select: none;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .card-title {
@@ -79,8 +82,10 @@ body {
 .status-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .problem-title {
@@ -373,7 +378,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 8px;
+  padding: 8px 4px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
@@ -382,6 +387,9 @@ body {
   color: var(--vscode-button-secondaryForeground);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .ai-action-btn:hover:not(:disabled) {
