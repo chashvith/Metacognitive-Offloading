@@ -1,174 +1,96 @@
-# Cognitive Coach — Telemetry Collection Extension
+<div align="center">
+  <h1>🧠 Cognitive Coach</h1>
+  <p><b>The Metacognitive AI Tutor</b></p>
+  <p>
+    <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+    <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" />
+    <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" />
+    <img alt="Gemini" src="https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlebard&logoColor=white" />
+  </p>
+</div>
 
-An AI-powered educational coding assistant that records how a student solves a programming problem, session by session, and saves each session as a local JSON file for ML training.
-
----
-
-## Project Overview
-
-The goal of this extension is to silently gather data about the coding process (pauses, deletions, errors, hint requests). By aggregating these events into a timeline, we train a machine learning model to detect *when* a student is struggling and predict the **minimum level of help** they will need.
-
-**Target label for ML:** `minimum_help_required` (0–6)
-| Value | Meaning |
-|-------|---------|
-| 0 | Solved independently |
-| 1 | Needed Hint 1 |
-| 2 | Needed Hint 2 |
-| 3 | Needed Concept explanation |
-| 4 | Needed Pseudocode |
-| 5 | Needed Full Solution |
-| 6 | Could Not Solve |
+An AI-powered educational ecosystem that silently records how a student solves programming problems, detects cognitive overload in real-time, proactively intervenes with hints, and provides teachers with a stunning dashboard to replay and analyze the learning process.
 
 ---
 
-## Features
+## 🚀 The "Wow" Features (Hackathon Highlights)
 
-- **Automatic Error Detection**: Detects compile errors and runtime errors directly from terminal output — supports C++, Python, Java, JavaScript, Go, C#, Rust, Ruby, PHP, Swift, Kotlin, Dart and more.
-- **Local JSON Dataset**: Every session writes directly to the local `dataset/` folder with a standardized ML-ready schema.
-- **Outcome QuickPick**: When ending a session, a dialog asks "How did this session end?" — this sets the `minimum_help_required` label automatically.
-- **Derived ML Metrics**: Automatically computes `hesitation_index`, `editing_intensity`, `help_dependency_score`, `compile_failure_rate`, and `average_pause_duration` before export.
-- **Unified Event Timeline**: Every event is tagged with `"source": "automatic"` or `"source": "manual"` for full traceability.
-- **Real-Time Struggle Score**: Computes a struggle score per-event based on deletion ratio, pause frequency, compile error rate, and hint usage.
-- **Dataset Export**: One-click "Export Dataset" button that zips all sessions into a single `.zip` file.
-- **Crash Recovery**: Periodically saves an in-progress state file. Restores if VS Code crashes.
-- **Synthetic Data Generator**: `scripts/generate_synthetic_data.py` generates 300+ realistic sessions for ML bootstrapping.
-- **ML Training Pipeline**: `scripts/train_model.py` trains a Random Forest + XGBoost model and saves the best one.
+1. **"Mind-Reading" Proactive Intervention**: The VS Code extension isn't just passive. It continuously calculates a real-time `struggle_score`. If a student gets stuck, it proactively pops up and offers a hint right when they need it most!
+2. **Teacher Analytics Dashboard**: A gorgeous, dark-mode, glassmorphic web dashboard that visualizes student telemetry data, charting their cognitive load over time.
+3. **Cinematic Session Replay**: Teachers can hit "Replay" to watch a dramatic chronological timeline of exactly where the student paused, errored out, and succeeded, without having to read a single line of raw logs.
+4. **AI Session Summaries**: The dashboard uses the Google Gemini LLM to analyze the student's entire telemetry timeline and instantly generate a 3-sentence plain-English summary of their learning journey.
 
 ---
 
-## Folder Structure
+## 🧠 Project Architecture
 
-```
-cognitive-coach/
-├── dataset/                  <- All JSON session data goes here
-│   └── .gitkeep
-├── model/                    <- Trained ML model (.pkl) saved here
-├── scripts/
-│   ├── generate_synthetic_data.py   <- Generate 300 synthetic sessions
-│   └── train_model.py               <- Train Random Forest + XGBoost
-├── media/                    <- Icons and webview CSS
-├── src/
-│   ├── commands/             <- VS Code command registrations
-│   ├── export/               <- ZIP export logic
-│   ├── session/              <- Session lifecycle and file I/O
-│   ├── telemetry/            <- VS Code listeners + metrics calculation
-│   ├── utils/                <- UUID generator
-│   ├── views/                <- Webview UI
-│   ├── constants.ts          <- Tunable thresholds
-│   ├── extension.ts          <- Entry point
-│   └── types.ts              <- TypeScript interfaces & ML schema
-├── package.json
-├── README.md
-└── .gitignore
-```
+The project consists of three main components:
+
+1. **The Telemetry Extension (VS Code)**
+   - Silently gathers data (pauses, deletions, errors, hint requests).
+   - Generates a real-time `struggle_score` using a weighted algorithm.
+   - Saves rich JSON datasets locally.
+2. **The Backend API (Python / FastAPI)**
+   - Serves the Teacher Dashboard web app.
+   - Generates AI insights using Google Gemini SDK.
+   - Exposes REST APIs for fetching and parsing student session data.
+3. **The ML Training Pipeline**
+   - Uses the exported JSON datasets to train a Random Forest + XGBoost model.
+   - Predicts the *minimum level of help* a student will need in the future.
 
 ---
 
-## Getting Started
+## 🛠️ Getting Started / Live Demo Setup
 
 ### Prerequisites
-- **Node.js** v18+ — [Download](https://nodejs.org/)
-- **Visual Studio Code** v1.96+ — [Download](https://code.visualstudio.com/)
-- **Python 3.10+** (for ML scripts only) — [Download](https://python.org/)
+- **Node.js** v18+ 
+- **Python 3.10+** 
+- **Visual Studio Code** v1.96+
+- **Google Gemini API Key** (Set as `GEMINI_API_KEY` in `backend/.env`)
 
-### Installation
-
+### 1. Start the VS Code Extension
 ```bash
 git clone https://github.com/chashvith/Metacognitive-Offloading.git
 cd Metacognitive-Offloading/cognitive-coach
 npm install
 npm run build
 ```
+Open the folder in VS Code, press **F5** to launch the Extension Host. Click the **Cognitive Coach** icon in the sidebar and start coding!
 
-### Running the Extension
+### 2. Start the Teacher Dashboard (Backend)
+Open a new terminal in the project root:
+```bash
+pip install fastapi uvicorn google-genai
+python backend/app.py
+```
+Open your browser to `http://localhost:8000/static/index.html` to view the Teacher Dashboard.
 
-1. Open the `cognitive-coach` folder in VS Code.
-2. Press **F5** to launch the Extension Development Host.
-3. In the new window, open any project folder.
-4. Click the **Cognitive Coach icon** in the left Activity Bar.
-5. Click **Start Problem**, fill in the prompts, and start coding!
+*(Pro Tip: Search for "PITCH" in the dashboard to see the pre-loaded perfect demo session!)*
 
 ---
 
-## How Data Collection Works
+## 📊 How the ML Pipeline Works
 
-```
-Student types in editor
-        │
-        ▼
-onDidChangeTextDocument (every keystroke, no debounce)
-        │
-        ├──> chars_typed / chars_deleted updated
-        ├──> Pause detection: gap > 5s → pause event + struggle score
-        └──> Typing batched for timeline
-
-Student runs code in terminal
-        │
-        ▼
-Shell Integration / Task hooks detect exit code
-        │
-        ├──> Exit 0  → compile_success or successful_run
-        └──> Exit ≠0 → compile_error or runtime_error
-
-Student clicks "End Problem"
-        │
-        ▼
-QuickPick: "How did this session end?"
-        │
-        └──> Sets status + minimum_help_required label
-             Computes derived_metrics
-             Sanitizes file paths
-             Saves JSON to dataset/
-```
-
----
-
-## ML Training
-
-### Step 1: Generate Synthetic Data (optional)
-```bash
-python scripts/generate_synthetic_data.py
-# Generates 300 session JSONs in dataset/
-```
-
-### Step 2: Train the Model
-```bash
-pip install scikit-learn xgboost pandas numpy
-python scripts/train_model.py
-# Trains Random Forest + XGBoost
-# Saves best model to model/cognitive_coach_model.pkl
-# Prints accuracy, classification report, feature importances
-```
-
-### ML Features (X)
+We train on rich features derived from the telemetry timeline:
 | Feature | Description |
 |---------|-------------|
 | `time_spent` | Total session time (seconds) |
 | `idle_ratio` | Fraction of time idle |
 | `deletion_ratio` | chars deleted / chars typed |
 | `typing_speed` | chars per active minute |
-| `pause_count` | Number of detected pauses |
 | `hesitation_index` | pause_duration / time_spent |
 | `compile_failure_rate` | errors / attempts |
-| `runtime_errors` | Total runtime errors |
-| `hints_used` | Total hints clicked |
 | `help_dependency` | hints_used / hints_available |
 | `struggle_max` | Peak struggle score |
-| `struggle_trend` | Final score − initial score |
-| `editing_intensity` | chars_deleted / chars_typed |
-| `difficulty` | Easy=0 / Medium=1 / Hard=2 |
 
-### ML Label (Y)
-`minimum_help_required` — integer 0 to 6
+**Target ML Label:** `minimum_help_required` (0 = Independent, 6 = Could Not Solve).
+
+To run the pipeline yourself:
+```bash
+python scripts/generate_synthetic_data.py  # Generates 300 sessions
+python scripts/train_model.py              # Trains XGBoost model
+```
 
 ---
 
-## Installing the Extension (for testers)
-
-Share the `cognitive-coach-0.0.1.vsix` file. Recipients install it by:
-1. Open VS Code → Extensions (`Ctrl+Shift+X`)
-2. Click `...` menu → **Install from VSIX...**
-3. Select the `.vsix` file
-4. Reload VS Code
-
-Their `dataset/` session files can be collected, zipped, and sent back for training.
+*Built with ❤️ for the Hackathon.*

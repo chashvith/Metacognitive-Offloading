@@ -13,8 +13,9 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes import health, predict, recommendation
+from routes import health, predict, recommendation, dashboard
 from services.ml_service import ml_service
+from fastapi.staticfiles import StaticFiles
 
 logging.basicConfig(
     level=logging.INFO,
@@ -52,6 +53,10 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(predict.router)
 app.include_router(recommendation.router)
+app.include_router(dashboard.router)
+
+# Mount static directory for Teacher Dashboard UI
+app.mount("/static", StaticFiles(directory=backend_path / "static"), name="static")
 
 
 if __name__ == "__main__":

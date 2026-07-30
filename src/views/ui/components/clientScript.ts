@@ -149,6 +149,11 @@ export function getClientScript(): string {
       // Session Timer & Problem Info
       document.getElementById('timer').textContent = formatTime(state.elapsedSeconds);
       document.getElementById('problemName').textContent = state.problemName || 'No active problem';
+      
+      const pillsContainer = document.querySelector('.status-pills');
+      if (pillsContainer) {
+        pillsContainer.style.display = (state.status === 'Recording') ? 'flex' : 'none';
+      }
 
       const isRecording = state.status === 'Recording';
       const sections = [

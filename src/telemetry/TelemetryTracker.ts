@@ -69,6 +69,9 @@ export class TelemetryTracker {
   // ── Typing batch for timeline (display batching only, NOT data) ──────────
   private pendingTypedChars: number = 0;
   private pendingDeletedChars: number = 0;
+  
+  // ── Proactive Intervention (Mind-Reading) ────────────────────────────────
+  private lastProactiveHintTime: number = 0;
 
   /**
    * @param timeline - The shared EventTimeline instance
@@ -680,6 +683,21 @@ export class TelemetryTracker {
       score: Math.round(score * 1000) / 1000,
       trigger,
     });
+
+    // Proactive "Mind-Reading" Intervention
+    const now = Date.now();
+    // Trigger if score > 0.65, we have passed 60s, and haven't prompted in the last 2 mins
+    if (score > 0.65 && elapsed > 60 && (now - this.lastProactiveHintTime > 120000)) {
+        this.lastProactiveHintTime = now;
+        vscode.window.showInformationMessage(
+            "Cognitive Coach: It looks like you might be stuck. Would you like a hint?", 
+            "Yes, please", "No, thanks"
+        ).then(selection => {
+            if (selection === "Yes, please") {
+                vscode.commands.executeCommand('cognitive-coach.recommendHint');
+            }
+        });
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
