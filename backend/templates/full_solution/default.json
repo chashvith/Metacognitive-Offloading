@@ -1,0 +1,10 @@
+{
+  "title": "Full Solution & Explanation",
+  "level": "full_solution",
+  "message_template": "{full_solution_message}",
+  "next_step_template": "Study the reference implementation in {language} and compare it with your approach.",
+  "reflection_question_template": "{reflection_question}",
+  "encouragement": "Analyzing complete solutions helps build deep algorithmic intuition.",
+  "include_code": true,
+  "include_complexity": true
+}

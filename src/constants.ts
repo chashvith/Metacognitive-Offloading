@@ -21,3 +21,14 @@ export const SCHEMA_VERSION = '1.0';
 
 /** UI refresh interval (ms) — rendering only, telemetry capture is per-event */
 export const UI_REFRESH_INTERVAL_MS = 500;
+
+// ─── Backend Integration ────────────────────────────────────────────────────
+
+/** VS Code settings section under which backend integration settings live */
+export const BACKEND_CONFIG_SECTION = 'cognitiveCoach';
+
+/** Fallback backend URL used if the user hasn't configured cognitiveCoach.backendUrl */
+export const DEFAULT_BACKEND_URL = 'http://localhost:8000';
+
+/** Max time (ms) to wait for a backend HTTP response before aborting */
+export const BACKEND_REQUEST_TIMEOUT_MS = 10_000;

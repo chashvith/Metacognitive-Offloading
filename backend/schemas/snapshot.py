@@ -73,20 +73,10 @@ class FullPredictResponse(BaseModel):
     hint: Dict[str, Any]
 
 
-class RecommendationRequest(BaseModel):
-    """Request schema for recommendation engine."""
-    snapshot: Dict[str, Any]
-
-
-class RecommendationResponse(BaseModel):
-    """Output schema from recommendation engine."""
-    status: str = "success"
-    struggle_level: str
-    recommended_action: str
-    intervention_type: str
-    details: Dict[str, Any]
+from schemas.recommendation import RecommendationRequest, RecommendationResponse
 
 
 class HealthResponse(BaseModel):
     """Health check endpoint response schema."""
     status: str = "running"
+

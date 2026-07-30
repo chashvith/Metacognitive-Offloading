@@ -1,0 +1,10 @@
+{
+  "title": "Pseudocode Guidance",
+  "level": "pseudocode",
+  "message_template": "Here is the language-independent algorithmic pseudocode:\n\n{pseudocode}",
+  "next_step_template": "{pseudocode_next_step}",
+  "reflection_question_template": "{reflection_question}",
+  "encouragement": "Translate each pseudocode line into valid {language} syntax.",
+  "include_code": false,
+  "include_complexity": false
+}

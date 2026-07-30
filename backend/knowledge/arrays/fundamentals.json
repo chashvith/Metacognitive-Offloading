@@ -1,0 +1,57 @@
+{
+  "concept_id": "arrays_fundamentals",
+  "name": "Array Traversal and Indexing",
+  "topic": "Arrays",
+  "subtopic": "Fundamentals",
+  "explanation": "Arrays store elements in contiguous memory locations allowing O(1) random access via 0-based indices.",
+  "learning_objectives": [
+    "Understand contiguous index calculation and offset arithmetic",
+    "Prevent index-out-of-bound errors during iteration",
+    "Recognize time tradeoffs between indexed lookup O(1) and linear search O(N)"
+  ],
+  "common_misconceptions": [
+    "Confusing array length with the last valid index (length - 1)",
+    "Expecting element lookup by value to be O(1) without an index or auxiliary map"
+  ],
+  "hints": {
+    "no_hint": {
+      "message": "Your array indexing logic is coming along nicely. Keep tracking your loop counters.",
+      "next_step": "Double-check your loop bounds to ensure you cover every valid element.",
+      "reflection_question": "What is the index of the final element when the array has length N?"
+    },
+    "concept": {
+      "message": "Arrays provide O(1) direct access by index, but searching for an arbitrary value requires O(N) linear scan.",
+      "next_step": "Consider whether checking values requires scanning the remaining array elements.",
+      "reflection_question": "If you need to look up values repeatedly, how does linear array iteration affect your total time complexity?"
+    },
+    "guided": {
+      "message": "Iterate through the array while keeping track of current element indices.",
+      "next_step": "Write a single loop starting at index 0 and ending at array length minus 1.",
+      "reflection_question": "What variable are you using to track the current position in the array?"
+    },
+    "pseudocode": {
+      "message": "FOR i FROM 0 TO length - 1:\n    element = arr[i]\n    PROCESS element",
+      "next_step": "Implement the array iteration loop in your programming language.",
+      "reflection_question": "How do you guarantee that your index i never exceeds length - 1?"
+    },
+    "full_solution": {
+      "message": "Iterating over an array element by element allows inspecting or updating each item in linear time O(N).",
+      "next_step": "Test your solution with empty arrays and single-element inputs.",
+      "reflection_question": "Why is random element insertion inefficient in a standard contiguous array?"
+    }
+  },
+  "reflection_questions": [
+    "How does 0-based indexing affect your loop condition (< N vs <= N)?",
+    "What occurs when you access index arr[len]?"
+  ],
+  "pseudocode": "FOR i = 0 UNTIL array.length:\n    current = array[i]\n    IF condition(current):\n        RETURN i",
+  "solution_code": {
+    "python": "def find_element(arr, target):\n    for i in range(len(arr)):\n        if arr[i] == target:\n            return i\n    return -1",
+    "java": "public int findElement(int[] arr, int target) {\n    for (int i = 0; i < arr.length; i++) {\n        if (arr[i] == target) return i;\n    }\n    return -1;\n}",
+    "cpp": "int findElement(const vector<int>& arr, int target) {\n    for (size_t i = 0; i < arr.size(); ++i) {\n        if (arr[i] == target) return i;\n    }\n    return -1;\n}"
+  },
+  "complexity": {
+    "time": "O(N) - Linear iteration across array elements",
+    "space": "O(1) - Auxiliary space"
+  }
+}

@@ -117,6 +117,12 @@ def test_recommend_endpoint():
     """Test POST /recommend"""
     print("\n[5/5] Testing POST /recommend...")
     high_struggle_payload = {
+        "problem_name": "Two Sum",
+        "topic": "Arrays",
+        "subtopic": "HashMaps",
+        "language": "Java",
+        "solver_prediction": "Needs Help",
+        "hint_prediction": "Concept Hint",
         "snapshot": {
             "current_struggle_score": 0.75,
             "compile_errors": 6,
@@ -126,9 +132,11 @@ def test_recommend_endpoint():
     response = client.post("/recommend", json=high_struggle_payload)
     assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
     data = response.json()
-    assert data.get("struggle_level") == "High", f"Expected High struggle_level, got {data}"
-    assert "recommended_action" in data and "intervention_type" in data
+    assert data.get("level") == "concept", f"Expected 'concept' level, got {data}"
+    assert "title" in data and "message" in data and "reflection_question" in data
+    assert "next_step" in data and "encouragement" in data and "confidence" in data
     print("  [OK] POST /recommend PASSED:", data)
+
 
 
 def run_all_tests():

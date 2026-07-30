@@ -1,0 +1,57 @@
+{
+  "concept_id": "binary_search_fundamentals",
+  "name": "Binary Search Divide and Conquer",
+  "topic": "Binary Search",
+  "subtopic": "Fundamentals",
+  "explanation": "Binary search repeatedly divides a sorted search space in half, achieving logarithmic O(log N) search time.",
+  "learning_objectives": [
+    "Calculate mid-point without integer overflow",
+    "Identify binary search invariant conditions",
+    "Shrink left and right bounds correctly"
+  ],
+  "common_misconceptions": [
+    "Off-by-one errors when setting left = mid vs left = mid + 1",
+    "Applying binary search on unsorted sequences"
+  ],
+  "hints": {
+    "no_hint": {
+      "message": "Your binary search boundary management is progressing well.",
+      "next_step": "Check your termination condition (left <= right vs left < right).",
+      "reflection_question": "What happens when left and right point to the same index?"
+    },
+    "concept": {
+      "message": "Binary search cuts the search domain in half at every step by checking the middle element.",
+      "next_step": "Compare the middle value with your target to decide which half to discard.",
+      "reflection_question": "How many comparisons does binary search take for an array of 1,000 elements?"
+    },
+    "guided": {
+      "message": "Compute mid = left + (right - left) // 2.",
+      "next_step": "If target < arr[mid], move right to mid - 1. If target > arr[mid], move left to mid + 1.",
+      "reflection_question": "Why is left + (right - left) // 2 preferred over (left + right) // 2 in languages with fixed integer types?"
+    },
+    "pseudocode": {
+      "message": "left = 0, right = length - 1\nWHILE left <= right:\n    mid = left + (right - left) // 2\n    IF arr[mid] == target: RETURN mid\n    ELSE IF arr[mid] < target: left = mid + 1\n    ELSE: right = mid - 1\nRETURN -1",
+      "next_step": "Implement the binary search loop in your programming language.",
+      "reflection_question": "What condition guarantees that target is not present in the array?"
+    },
+    "full_solution": {
+      "message": "Binary search checks the middle element of a sorted array to discard half the search space per iteration in O(log N) time.",
+      "next_step": "Test edge cases like single-element arrays and targets smaller or larger than all elements.",
+      "reflection_question": "How can binary search be adapted to find the first occurrence of duplicate elements?"
+    }
+  },
+  "reflection_questions": [
+    "Why does binary search achieve logarithmic O(log N) efficiency?",
+    "How do you ensure mid calculation does not cause an infinite loop when left and right are adjacent?"
+  ],
+  "pseudocode": "low = 0, high = N - 1\nWHILE low <= high:\n    mid = (low + high) / 2\n    IF A[mid] == target: RETURN mid\n    IF A[mid] < target: low = mid + 1\n    ELSE: high = mid - 1\nRETURN -1",
+  "solution_code": {
+    "python": "def binary_search(arr, target):\n    left, right = 0, len(arr) - 1\n    while left <= right:\n        mid = left + (right - left) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1",
+    "java": "public int binarySearch(int[] arr, int target) {\n    int left = 0, right = arr.length - 1;\n    while (left <= right) {\n        int mid = left + (right - left) / 2;\n        if (arr[mid] == target) return mid;\n        if (arr[mid] < target) left = mid + 1; else right = mid - 1;\n    }\n    return -1;\n}",
+    "cpp": "int binarySearch(const vector<int>& arr, int target) {\n    int left = 0, right = arr.size() - 1;\n    while (left <= right) {\n        int mid = left + (right - left) / 2;\n        if (arr[mid] == target) return mid;\n        if (arr[mid] < target) left = mid + 1; else right = mid - 1;\n    }\n    return -1;\n}"
+  },
+  "complexity": {
+    "time": "O(log N) - Logarithmic search space reduction",
+    "space": "O(1) - Iterative auxiliary space"
+  }
+}

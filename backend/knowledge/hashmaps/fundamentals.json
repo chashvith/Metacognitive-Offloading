@@ -1,0 +1,57 @@
+{
+  "concept_id": "hashmaps_fundamentals",
+  "name": "HashMap Key-Value Lookups",
+  "topic": "HashMaps",
+  "subtopic": "Fundamentals",
+  "explanation": "HashMaps map keys to values using a hash function, achieving average O(1) time complexity for insertions and lookups.",
+  "learning_objectives": [
+    "Leverage key-value pairs to store previously seen elements",
+    "Replace nested O(N^2) loops with O(N) HashMap lookups",
+    "Understand the complement lookup technique (e.g. target - current_value)"
+  ],
+  "common_misconceptions": [
+    "Assuming HashMap lookups are O(N) like array linear searches",
+    "Forgetting to check if a key exists before retrieving its value"
+  ],
+  "hints": {
+    "no_hint": {
+      "message": "Your HashMap logic looks promising! Keep testing key presence.",
+      "next_step": "Ensure you put elements into the map at the correct point in your loop.",
+      "reflection_question": "Are you inserting elements into your map before or after checking for complement values?"
+    },
+    "concept": {
+      "message": "A HashMap allows you to trade space O(N) for time efficiency O(1) by remembering values you have already seen.",
+      "next_step": "Think about storing values as keys in a hash map while iterating over your data.",
+      "reflection_question": "What information could you store in a HashMap so future lookups take constant time?"
+    },
+    "guided": {
+      "message": "As you iterate through the elements, calculate the required complement value (target - current).",
+      "next_step": "Check if the complement exists in your HashMap. If yes, you found the pair. If no, add current value to the map.",
+      "reflection_question": "What value needs to be stored as the key vs value in your HashMap?"
+    },
+    "pseudocode": {
+      "message": "map = EMPTY_HASH_MAP\nFOR index, num IN ENUMERATE(nums):\n    complement = target - num\n    IF complement IN map:\n        RETURN [map[complement], index]\n    map[num] = index",
+      "next_step": "Translate the complement lookup pseudocode into code using your language's map/dict structure.",
+      "reflection_question": "Why does checking the map BEFORE inserting current num prevent using the same element twice?"
+    },
+    "full_solution": {
+      "message": "By maintaining a hash map of numbers seen so far, we can check if the complement (target - num) exists in O(1) average time.",
+      "next_step": "Run your solution against test cases with duplicate values or target equal to double an element.",
+      "reflection_question": "What happens if there are duplicate numbers in the input list?"
+    }
+  },
+  "reflection_questions": [
+    "How does a HashMap reduce runtime from quadratic O(N^2) to linear O(N)?",
+    "What is stored as the key in the HashMap, and what is stored as the value?"
+  ],
+  "pseudocode": "seen = {} \nFOR i, x IN ARRAY:\n    IF (target - x) IN seen:\n        RETURN [seen[target - x], i]\n    seen[x] = i",
+  "solution_code": {
+    "python": "def two_sum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            return [seen[complement], i]\n        seen[num] = i\n    return []",
+    "java": "public int[] twoSum(int[] nums, int target) {\n    Map<Integer, Integer> map = new HashMap<>();\n    for (int i = 0; i < nums.length; i++) {\n        int complement = target - nums[i];\n        if (map.containsKey(complement)) {\n            return new int[] { map.get(complement), i };\n        }\n        map.put(nums[i], i);\n    }\n    return new int[0];\n}",
+    "cpp": "vector<int> twoSum(const vector<int>& nums, int target) {\n    unordered_map<int, int> map;\n    for (int i = 0; i < nums.size(); ++i) {\n        int complement = target - nums[i];\n        if (map.count(complement)) {\n            return {map[complement], i};\n        }\n        map[nums[i]] = i;\n    }\n    return {};\n}"
+  },
+  "complexity": {
+    "time": "O(N) - Single pass with O(1) hash map operations",
+    "space": "O(N) - Storage for up to N entries in hash map"
+  }
+}

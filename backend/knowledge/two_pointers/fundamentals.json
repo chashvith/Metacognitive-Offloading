@@ -1,0 +1,57 @@
+{
+  "concept_id": "two_pointers_fundamentals",
+  "name": "Two-Pointer Technique",
+  "topic": "Two Pointers",
+  "subtopic": "Fundamentals",
+  "explanation": "Two pointers iterate over a data structure simultaneously (e.g. left and right boundaries) to evaluate conditions in O(N) time without nested loops.",
+  "learning_objectives": [
+    "Identify sorted array properties suitable for shrinking search spaces",
+    "Maintain left and right pointer bounds",
+    "Determine clear move criteria for left and right pointers"
+  ],
+  "common_misconceptions": [
+    "Attempting to use two pointers on unsorted data when sorted order is required",
+    "Failing to advance pointers correctly causing infinite loops"
+  ],
+  "hints": {
+    "no_hint": {
+      "message": "Your pointer manipulation looks solid. Keep monitoring pointer meeting conditions.",
+      "next_step": "Verify your loop condition (e.g. left < right vs left <= right).",
+      "reflection_question": "What condition signals that your search window has collapsed?"
+    },
+    "concept": {
+      "message": "When an array is sorted, comparing elements at opposite ends allows shrinking the search space in linear time.",
+      "next_step": "Place one pointer at the beginning and another at the end of your array.",
+      "reflection_question": "If the current sum is too small, which pointer must move to increase the sum?"
+    },
+    "guided": {
+      "message": "Compare the sum of elements at left and right pointers against your target.",
+      "next_step": "If current sum < target, increment left pointer. If sum > target, decrement right pointer.",
+      "reflection_question": "Why does moving the left pointer right guarantee an increase in sum on a sorted array?"
+    },
+    "pseudocode": {
+      "message": "left = 0, right = length - 1\nWHILE left < right:\n    current_sum = arr[left] + arr[right]\n    IF current_sum == target: RETURN [left, right]\n    ELSE IF current_sum < target: left++\n    ELSE: right--",
+      "next_step": "Implement the while-loop pointer advancement logic in your code.",
+      "reflection_question": "How do you handle edge cases where no valid pair exists?"
+    },
+    "full_solution": {
+      "message": "Using two pointers starting at opposite ends of a sorted array reduces pair finding to O(N) time and O(1) space.",
+      "next_step": "Test with arrays containing negative numbers or duplicate values.",
+      "reflection_question": "What is the advantage of two pointers over hash map lookup in terms of space complexity?"
+    }
+  },
+  "reflection_questions": [
+    "Why must the input be sorted for the two-pointer directional strategy to hold?",
+    "Under what condition should the left pointer advance versus the right pointer?"
+  ],
+  "pseudocode": "left = 0, right = N - 1\nWHILE left < right:\n    val = arr[left] + arr[right]\n    IF val == target: RETURN [left, right]\n    IF val < target: left = left + 1\n    ELSE: right = right - 1",
+  "solution_code": {
+    "python": "def two_sum_sorted(numbers, target):\n    left, right = 0, len(numbers) - 1\n    while left < right:\n        curr = numbers[left] + numbers[right]\n        if curr == target:\n            return [left + 1, right + 1]\n        elif curr < target:\n            left += 1\n        else:\n            right -= 1\n    return []",
+    "java": "public int[] twoSumSorted(int[] numbers, int target) {\n    int left = 0, right = numbers.length - 1;\n    while (left < right) {\n        int sum = numbers[left] + numbers[right];\n        if (sum == target) return new int[]{left + 1, right + 1};\n        if (sum < target) left++; else right--;\n    }\n    return new int[0];\n}",
+    "cpp": "vector<int> twoSumSorted(const vector<int>& numbers, int target) {\n    int left = 0, right = numbers.size() - 1;\n    while (left < right) {\n        int sum = numbers[left] + numbers[right];\n        if (sum == target) return {left + 1, right + 1};\n        if (sum < target) left++; else right--;\n    }\n    return {};\n}"
+  },
+  "complexity": {
+    "time": "O(N) - Linear scan shrinking pointer distance",
+    "space": "O(1) - Constant auxiliary space"
+  }
+}

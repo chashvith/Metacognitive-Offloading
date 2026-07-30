@@ -1,0 +1,10 @@
+{
+  "title": "Concept Hint",
+  "level": "concept",
+  "message_template": "Focus on the underlying concept: {concept_explanation}",
+  "next_step_template": "{concept_next_step}",
+  "reflection_question_template": "{reflection_question}",
+  "encouragement": "Connecting the core concept to your logic is key. You're close!",
+  "include_code": false,
+  "include_complexity": false
+}

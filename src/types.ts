@@ -223,6 +223,13 @@ export interface SidebarState {
   hintsRequested: HintCounts;
   currentStruggleScore: number;
   struggleScores: StruggleScoreEntry[];
+
+  /** Lifecycle status of the latest backend recommendation request */
+  recommendationStatus: RecommendationStatus;
+  /** Most recent recommendation returned by POST /recommend, if any */
+  recommendation: RecommendationResult | null;
+  /** Human-readable error message if the last backend call failed */
+  recommendationError: string | null;
 }
 
 // ─── Persistence (crash recovery) ──────────────────────────────────────────────
@@ -232,6 +239,85 @@ export interface InProgressData {
   session: Session;
   trackerState: TrackerState;
 }
+
+// ─── Backend Integration (FastAPI: /predict/full, /recommend) ─────────────────
+
+/**
+ * Telemetry snapshot payload sent to POST /predict/full and embedded inside
+ * POST /recommend. Field names/shape match backend/schemas/snapshot.py's
+ * `SnapshotSchema` exactly — the backend is the source of truth for this shape.
+ */
+export interface SnapshotPayload {
+  difficulty: Difficulty;
+  language: string;
+  topic: string;
+  subtopic: string;
+  elapsed_time: number;
+  progress_ratio: number;
+  current_struggle_score: number;
+  chars_typed: number;
+  chars_deleted: number;
+  pause_count: number;
+  pause_duration: number;
+  compile_attempts: number;
+  compile_errors: number;
+  successful_runs: number;
+  runtime_errors: number;
+  deletion_ratio: number;
+  typing_speed: number;
+  compile_failure_rate: number;
+  average_pause_duration: number;
+}
+
+/** A single model's output within a /predict/full response (solver or hint) */
+export interface ModelPrediction {
+  prediction: string;
+  confidence: number;
+  status?: string;
+  [key: string]: unknown;
+}
+
+/** Response body of POST /predict/full (backend/schemas/snapshot.py FullPredictResponse) */
+export interface FullPredictResult {
+  status: string;
+  solver: ModelPrediction;
+  hint: ModelPrediction;
+}
+
+/** Request body of POST /recommend (backend/schemas/recommendation.py RecommendationRequest) */
+export interface RecommendationRequestPayload {
+  problem_name: string;
+  difficulty: Difficulty;
+  topic: string;
+  subtopic: string;
+  language: string;
+  student_code: string;
+  solver_prediction: string;
+  solver_confidence: number;
+  hint_prediction: string;
+  hint_confidence: number;
+  snapshot: SnapshotPayload;
+}
+
+/** Response body of POST /recommend (backend/schemas/recommendation.py RecommendationResponse) */
+export interface RecommendationResult {
+  title: string;
+  level: string;
+  message: string;
+  next_step: string;
+  reflection_question: string;
+  encouragement: string;
+  confidence: number;
+  code?: string | null;
+  complexity?: Record<string, string> | null;
+  metadata: Record<string, unknown>;
+  status: string;
+}
+
+/** Lifecycle status of the current recommendation request, surfaced in the sidebar */
+export type RecommendationStatus = 'idle' | 'loading' | 'error';
+
+// ─── Persistence (crash recovery) ──────────────────────────────────────────────
 
 /** Serializable snapshot of TelemetryTracker internal state */
 export interface TrackerState {

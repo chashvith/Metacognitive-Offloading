@@ -1,0 +1,57 @@
+{
+  "concept_id": "graphs_bfs",
+  "name": "Breadth-First Search (BFS)",
+  "topic": "Graphs",
+  "subtopic": "BFS",
+  "explanation": "BFS traverses a graph level-by-level using a Queue (FIFO), guaranteeing shortest path discovery in unweighted graphs.",
+  "learning_objectives": [
+    "Utilize a Queue to explore graph nodes level by level",
+    "Maintain a visited set to avoid infinite cycles in graph traversal",
+    "Track path distance accurately level by level"
+  ],
+  "common_misconceptions": [
+    "Using a Stack instead of a Queue (converting BFS to DFS)",
+    "Marking nodes as visited when dequeued instead of when enqueued (causing duplicate processing)"
+  ],
+  "hints": {
+    "no_hint": {
+      "message": "Your queue-based level traversal logic looks great. Keep tracking visited nodes.",
+      "next_step": "Ensure nodes are added to the visited set immediately upon enqueueing.",
+      "reflection_question": "Why must a node be marked visited as soon as it enters the queue?"
+    },
+    "concept": {
+      "message": "Breadth-First Search explores all immediate neighbors of a node before moving deeper, using a FIFO Queue.",
+      "next_step": "Initialize a queue with your starting node and a set to track visited nodes.",
+      "reflection_question": "Why does BFS guarantee finding the shortest path in an unweighted graph?"
+    },
+    "guided": {
+      "message": "Pop the front node from the queue, inspect its unvisited neighbors, mark them visited, and enqueue them.",
+      "next_step": "Loop while the queue is non-empty.",
+      "reflection_question": "What data structure guarantees first-in-first-out node processing?"
+    },
+    "pseudocode": {
+      "message": "queue = [start_node], visited = {start_node}\nWHILE queue IS NOT EMPTY:\n    node = queue.pop_left()\n    FOR neighbor IN node.neighbors:\n        IF neighbor NOT IN visited:\n            visited.add(neighbor)\n            queue.append(neighbor)",
+      "next_step": "Write the BFS loop using a collections.deque in Python or Queue interface in Java/C++.",
+      "reflection_question": "What happens if a neighbor is added to the queue without checking the visited set?"
+    },
+    "full_solution": {
+      "message": "BFS uses a Queue to process nodes level-by-level, ensuring O(V + E) traversal and shortest path guarantees in unweighted graphs.",
+      "next_step": "Test with disconnected graph components or graphs containing single nodes.",
+      "reflection_question": "How would you modify BFS to track the exact shortest path sequence instead of just the distance?"
+    }
+  },
+  "reflection_questions": [
+    "How does the FIFO property of a Queue enforce level-by-level graph traversal?",
+    "Why is a visited set essential for cyclic graphs?"
+  ],
+  "pseudocode": "queue = Queue(), visited = Set()\nqueue.enqueue(start), visited.add(start)\nWHILE queue NOT EMPTY:\n    curr = queue.dequeue()\n    FOR nxt IN adj[curr]:\n        IF nxt NOT IN visited:\n            visited.add(nxt)\n            queue.enqueue(nxt)",
+  "solution_code": {
+    "python": "from collections import deque\ndef bfs(graph, start):\n    visited = {start}\n    queue = deque([start])\n    result = []\n    while queue:\n        node = queue.popleft()\n        result.append(node)\n        for neighbor in graph.get(node, []):\n            if neighbor not in visited:\n                visited.add(neighbor)\n                queue.append(neighbor)\n    return result",
+    "java": "public List<Integer> bfs(Map<Integer, List<Integer>> graph, int start) {\n    Set<Integer> visited = new HashSet<>();\n    Queue<Integer> queue = new LinkedList<>();\n    List<Integer> result = new ArrayList<>();\n    visited.add(start);\n    queue.add(start);\n    while (!queue.isEmpty()) {\n        int node = queue.poll();\n        result.add(node);\n        for (int neighbor : graph.getOrDefault(node, Collections.emptyList())) {\n            if (!visited.contains(neighbor)) {\n                visited.add(neighbor);\n                queue.add(neighbor);\n            }\n        }\n    }\n    return result;\n}",
+    "cpp": "vector<int> bfs(const unordered_map<int, vector<int>>& graph, int start) {\n    unordered_set<int> visited = {start};\n    queue<int> q; q.push(start);\n    vector<int> result;\n    while (!q.empty()) {\n        int node = q.front(); q.pop();\n        result.push_back(node);\n        if (graph.count(node)) {\n            for (int neighbor : graph.at(node)) {\n                if (!visited.count(neighbor)) {\n                    visited.insert(neighbor);\n                    q.push(neighbor);\n                }\n            }\n        }\n    }\n    return result;\n}"
+  },
+  "complexity": {
+    "time": "O(V + E) - Visits every vertex V and edge E once",
+    "space": "O(V) - Storage for queue and visited set"
+  }
+}

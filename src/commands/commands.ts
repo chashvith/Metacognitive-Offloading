@@ -174,6 +174,19 @@ export function registerCommands(
     })
   );
 
+  // ── Backend recommendation (manual trigger) ──────────────────────────────
+
+  disposables.push(
+    vscode.commands.registerCommand('cognitiveCoach.getRecommendation', () => {
+      if (!manager.isRecording) {
+        vscode.window.showWarningMessage('No active session. Start a problem first.');
+        return;
+      }
+      vscode.window.setStatusBarMessage('🎓 Requesting recommendation…', 2000);
+      manager.requestRecommendation();
+    })
+  );
+
   // ── End-state events (now handled via QuickPick in endProblem) ───────────
 
   return disposables;

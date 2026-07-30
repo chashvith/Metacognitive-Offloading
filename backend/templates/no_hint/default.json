@@ -1,0 +1,10 @@
+{
+  "title": "No Hint",
+  "level": "no_hint",
+  "message_template": "You are making steady progress on {problem_name}. Keep thinking through your current approach.",
+  "next_step_template": "Review your code step-by-step and test with simple input cases.",
+  "reflection_question_template": "{reflection_question}",
+  "encouragement": "You've got this! Independent problem solving builds strong debugging skills.",
+  "include_code": false,
+  "include_complexity": false
+}

@@ -20,12 +20,17 @@ import {
   EventType,
   SidebarState,
   InProgressData,
+  RecommendationResult,
+  RecommendationStatus,
 } from '../types';
 import { EventTimeline } from '../telemetry/EventTimeline';
 import { TelemetryTracker } from '../telemetry/TelemetryTracker';
 import { SessionPersistence } from './SessionPersistence';
 import { generateUUID } from '../utils/uuid';
 import { SCHEMA_VERSION, PERSIST_INTERVAL_MS } from '../constants';
+import { backendClient, BackendError } from '../backendClient';
+import { buildRecommendationRequest, buildSnapshot } from '../recommendation';
+import { isAutoRecommendEnabled } from '../config';
 
 export class SessionManager {
   private session: Session | null = null;
@@ -33,6 +38,13 @@ export class SessionManager {
   private tracker: TelemetryTracker | null = null;
   private persistTimer: ReturnType<typeof setInterval> | null = null;
   private readonly persistence: SessionPersistence;
+
+  // ── Backend recommendation state ─────────────────────────────────────────
+  // Surfaced through getState() so SidebarProvider's existing polling loop
+  // picks it up automatically — no separate push channel needed.
+  private recommendation: RecommendationResult | null = null;
+  private recommendationStatus: RecommendationStatus = 'idle';
+  private recommendationError: string | null = null;
 
   /** Callback fired on status changes — used by SidebarProvider to refresh */
   private statusChangeCallback: ((status: SessionStatus) => void) | null = null;
@@ -157,6 +169,11 @@ export class SessionManager {
       studentId: studentId || '',
       startTime: new Date(now).toISOString(),
     });
+
+    // Reset any recommendation left over from a previous session
+    this.recommendation = null;
+    this.recommendationStatus = 'idle';
+    this.recommendationError = null;
 
     // Attach listeners
     this.tracker.attach();
@@ -359,6 +376,7 @@ export class SessionManager {
     if (!this.tracker) { return; }
     this.tracker.recordCompileError();
     this.persistInProgressNow();
+    this.maybeAutoRequestRecommendation();
   }
 
   /** Record a successful run (manual button / command palette) */
@@ -373,6 +391,7 @@ export class SessionManager {
     if (!this.tracker) { return; }
     this.tracker.recordRuntimeError();
     this.persistInProgressNow();
+    this.maybeAutoRequestRecommendation();
   }
 
   /**
@@ -383,6 +402,80 @@ export class SessionManager {
     if (!this.tracker) { return; }
     this.tracker.recordHint(type);
     this.persistInProgressNow();
+    this.maybeAutoRequestRecommendation();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BACKEND RECOMMENDATION (POST /predict/full → POST /recommend)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Fire-and-forget wrapper used by struggle-signalling events (compile
+   * error, runtime error, hint request) to automatically refresh the
+   * recommendation, gated by the `cognitiveCoach.autoRecommend` setting.
+   * Errors are swallowed here since requestRecommendation() already reports
+   * them through recommendationStatus/recommendationError for the UI.
+   */
+  private maybeAutoRequestRecommendation(): void {
+    if (!isAutoRecommendEnabled()) {
+      return;
+    }
+    void this.requestRecommendation();
+  }
+
+  /**
+   * Collect the current telemetry snapshot, send it through the backend's
+   * ML pipeline (POST /predict/full) and Recommendation Engine
+   * (POST /recommend), and store the result for the sidebar to display.
+   *
+   * Safe to call repeatedly — each call fully replaces the previous
+   * recommendation/error state. Backend failures are caught and surfaced
+   * via recommendationStatus/recommendationError rather than thrown, so a
+   * down backend never disrupts telemetry collection or session recording.
+   */
+  async requestRecommendation(): Promise<void> {
+    if (!this.session || !this.tracker || !this.timeline) {
+      vscode.window.showWarningMessage(
+        'No active session. Start a problem first.'
+      );
+      return;
+    }
+
+    this.recommendationStatus = 'loading';
+    this.recommendationError = null;
+
+    try {
+      const studentCode =
+        vscode.window.activeTextEditor?.document.getText() ?? '';
+
+      const snapshot = buildSnapshot(this.session, this.tracker, this.timeline);
+      const fullPrediction = await backendClient.predictFull(snapshot);
+      const recommendationRequest = buildRecommendationRequest(
+        this.session,
+        snapshot,
+        studentCode,
+        fullPrediction
+      );
+      const recommendation = await backendClient.recommend(
+        recommendationRequest
+      );
+
+      this.recommendation = recommendation;
+      this.recommendationStatus = 'idle';
+      this.recommendationError = null;
+    } catch (err) {
+      this.recommendationStatus = 'error';
+      this.recommendationError =
+        err instanceof BackendError
+          ? err.message
+          : err instanceof Error
+          ? err.message
+          : 'Unknown error contacting the Cognitive Coach backend.';
+
+      vscode.window.showWarningMessage(
+        `Cognitive Coach backend unavailable: ${this.recommendationError}`
+      );
+    }
   }
 
   /**
@@ -484,6 +577,9 @@ export class SessionManager {
         hintsRequested: { hint1: 0, hint2: 0, concept: 0, pseudocode: 0, solution: 0 },
         currentStruggleScore: 0,
         struggleScores: [],
+        recommendationStatus: 'idle',
+        recommendation: null,
+        recommendationError: null,
       };
     }
 
@@ -507,6 +603,9 @@ export class SessionManager {
       currentStruggleScore:
         scores.length > 0 ? scores[scores.length - 1].score : 0,
       struggleScores: scores,
+      recommendationStatus: this.recommendationStatus,
+      recommendation: this.recommendation,
+      recommendationError: this.recommendationError,
     };
   }
 

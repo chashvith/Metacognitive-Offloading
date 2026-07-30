@@ -1,0 +1,58 @@
+{
+  "concept_id": "dp_fundamentals",
+  "name": "Dynamic Programming Fundamentals",
+  "topic": "Dynamic Programming",
+  "subtopic": "Fundamentals",
+  "explanation": "Dynamic Programming solves complex optimization problems by breaking them down into overlapping subproblems and storing subproblem results (memoization/tabulation).",
+  "learning_objectives": [
+    "Identify optimal substructure and overlapping subproblems",
+    "Formulate clear state representations dp[i]",
+    "Derive state transition equations (recurrence relations)",
+    "Establish base cases"
+  ],
+  "common_misconceptions": [
+    "Confusing Dynamic Programming with Greedy choices",
+    "Failing to define base cases causing recursion stack overflow or out-of-bound array access"
+  ],
+  "hints": {
+    "no_hint": {
+      "message": "Your state transition logic is coming together nicely. Keep tracking subproblem dependencies.",
+      "next_step": "Verify that your base cases cover the smallest possible inputs.",
+      "reflection_question": "What is the value of your DP state at index 0 and index 1?"
+    },
+    "concept": {
+      "message": "Dynamic Programming avoids recomputing subproblems by storing calculated results in a table (DP array or dictionary).",
+      "next_step": "Define what dp[i] represents in plain words before writing code.",
+      "reflection_question": "How does storing the result of subproblem i help compute subproblem i + 1?"
+    },
+    "guided": {
+      "message": "Establish base cases dp[0] and dp[1]. Then iterate from index 2 to N using state recurrence dp[i] = dp[i-1] + dp[i-2].",
+      "next_step": "Set up an array of size N + 1 initialized with base values.",
+      "reflection_question": "Which previously computed DP values are needed to compute the current step?"
+    },
+    "pseudocode": {
+      "message": "dp = ARRAY OF SIZE N + 1\ndp[0] = base_case_0\ndp[1] = base_case_1\nFOR i FROM 2 TO N:\n    dp[i] = dp[i - 1] + dp[i - 2]\nRETURN dp[N]",
+      "next_step": "Translate the iterative DP table logic into your language.",
+      "reflection_question": "Can you optimize the space complexity by storing only the last two variables instead of a full array?"
+    },
+    "full_solution": {
+      "message": "By filling a DP table iteratively using state transition dp[i] = dp[i-1] + dp[i-2], we achieve O(N) time and O(N) space (optimizable to O(1) space).",
+      "next_step": "Refactor your solution to use two variables to achieve O(1) auxiliary space.",
+      "reflection_question": "Why is the top-down memoization approach functionally equivalent to bottom-up tabulation?"
+    }
+  },
+  "reflection_questions": [
+    "What subproblem does dp[i] represent?",
+    "What is the recurrence relation connecting dp[i] to smaller subproblems?"
+  ],
+  "pseudocode": "dp[0] = 1, dp[1] = 1\nFOR i = 2 UNTIL N:\n    dp[i] = dp[i - 1] + dp[i - 2]\nRETURN dp[N]",
+  "solution_code": {
+    "python": "def climb_stairs(n):\n    if n <= 1:\n        return 1\n    dp = [0] * (n + 1)\n    dp[0], dp[1] = 1, 1\n    for i in range(2, n + 1):\n        dp[i] = dp[i - 1] + dp[i - 2]\n    return dp[n]",
+    "java": "public int climbStairs(int n) {\n    if (n <= 1) return 1;\n    int[] dp = new int[n + 1];\n    dp[0] = 1; dp[1] = 1;\n    for (int i = 2; i <= n; i++) {\n        dp[i] = dp[i - 1] + dp[i - 2];\n    }\n    return dp[n];\n}",
+    "cpp": "int climbStairs(int n) {\n    if (n <= 1) return 1;\n    vector<int> dp(n + 1, 0);\n    dp[0] = 1; dp[1] = 1;\n    for (int i = 2; i <= n; ++i) {\n        dp[i] = dp[i - 1] + dp[i - 2];\n    }\n    return dp[n];\n}"
+  },
+  "complexity": {
+    "time": "O(N) - Linear pass through DP state table",
+    "space": "O(N) - Table storage (optimizable to O(1))"
+  }
+}

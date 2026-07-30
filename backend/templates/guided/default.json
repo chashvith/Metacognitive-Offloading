@@ -1,0 +1,10 @@
+{
+  "title": "Guided Hint",
+  "level": "guided",
+  "message_template": "{guided_message}",
+  "next_step_template": "{guided_next_step}",
+  "reflection_question_template": "{reflection_question}",
+  "encouragement": "Take it step-by-step. Focus on completing this single next logical action.",
+  "include_code": false,
+  "include_complexity": false
+}

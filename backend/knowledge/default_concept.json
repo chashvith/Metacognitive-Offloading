@@ -1,0 +1,57 @@
+{
+  "concept_id": "default_concept",
+  "name": "General Problem Solving",
+  "topic": "General",
+  "subtopic": "Fundamentals",
+  "explanation": "Deconstructing a programming problem into clear logical inputs, state transformations, and expected outputs.",
+  "learning_objectives": [
+    "Identify key inputs and constraints",
+    "Track intermediate state transitions accurately",
+    "Structure logic step-by-step before writing code"
+  ],
+  "common_misconceptions": [
+    "Writing code immediately without understanding data flow",
+    "Ignoring edge cases like empty inputs or boundaries"
+  ],
+  "hints": {
+    "no_hint": {
+      "message": "You're making steady progress. Keep breaking down your logic step-by-step.",
+      "next_step": "Walk through your current code line-by-line with a simple sample input.",
+      "reflection_question": "What is the exact expected state after executing your main loop?"
+    },
+    "concept": {
+      "message": "Focus on the core data structure and how data moves through your algorithm.",
+      "next_step": "Identify which operation is taking the most time in your current approach.",
+      "reflection_question": "Is there a data structure that makes searching or accessing your data faster?"
+    },
+    "guided": {
+      "message": "Check your current loop bounds and conditional checks.",
+      "next_step": "Trace what happens on the first and last iteration of your loop.",
+      "reflection_question": "What invariant must hold true at the beginning of each iteration?"
+    },
+    "pseudocode": {
+      "message": "Initialize state variables -> Iterate over inputs -> Update state -> Return result.",
+      "next_step": "Translate each pseudocode step into your target programming language syntax.",
+      "reflection_question": "How does this pseudocode handle boundary conditions?"
+    },
+    "full_solution": {
+      "message": "A clean approach iterates systematically while maintaining state using optimal data structures.",
+      "next_step": "Review the reference solution and compare execution complexity with your initial attempt.",
+      "reflection_question": "Could this solution be further optimized in terms of space or memory reuse?"
+    }
+  },
+  "reflection_questions": [
+    "What assumptions are you making about the input bounds?",
+    "How can you verify that your state variables update correctly at each step?"
+  ],
+  "pseudocode": "FOR element IN input:\n    IF condition(element):\n        UPDATE state\nRETURN state",
+  "solution_code": {
+    "python": "def solve(items):\n    # Generic linear scan pattern\n    result = []\n    for item in items:\n        if item:\n            result.append(item)\n    return result",
+    "java": "public int solve(int[] nums) {\n    int count = 0;\n    for (int num : nums) {\n        if (num > 0) count++;\n    }\n    return count;\n}",
+    "cpp": "int solve(const vector<int>& nums) {\n    int count = 0;\n    for (int num : nums) {\n        if (num > 0) count++;\n    }\n    return count;\n}"
+  },
+  "complexity": {
+    "time": "O(N) - Single pass over input elements",
+    "space": "O(1) - Constant auxiliary space"
+  }
+}
