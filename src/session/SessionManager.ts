@@ -36,6 +36,7 @@ export class SessionManager {
   private session: Session | null = null;
   private timeline: EventTimeline | null = null;
   private tracker: TelemetryTracker | null = null;
+  private trackedDocumentUri?: string;
   private persistTimer: ReturnType<typeof setInterval> | null = null;
   private readonly persistence: SessionPersistence;
 
@@ -155,6 +156,7 @@ export class SessionManager {
     // ── Initialize session ─────────────────────────────────────────────
     const now = Date.now();
     const trackedUri = activeEditor?.document.uri.toString();
+    this.trackedDocumentUri = trackedUri;
 
     this.timeline = new EventTimeline(now);
     this.tracker = new TelemetryTracker(this.timeline, trackedUri);
@@ -402,7 +404,7 @@ export class SessionManager {
     if (!this.tracker) { return; }
     this.tracker.recordHint(type);
     this.persistInProgressNow();
-    this.maybeAutoRequestRecommendation();
+    this.maybeAutoRequestRecommendation(type);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -416,11 +418,11 @@ export class SessionManager {
    * Errors are swallowed here since requestRecommendation() already reports
    * them through recommendationStatus/recommendationError for the UI.
    */
-  private maybeAutoRequestRecommendation(): void {
-    if (!isAutoRecommendEnabled()) {
+  private maybeAutoRequestRecommendation(explicitHintType?: EventType): void {
+    if (!isAutoRecommendEnabled() && !explicitHintType) {
       return;
     }
-    void this.requestRecommendation();
+    void this.requestRecommendation(explicitHintType);
   }
 
   /**
@@ -433,7 +435,7 @@ export class SessionManager {
    * via recommendationStatus/recommendationError rather than thrown, so a
    * down backend never disrupts telemetry collection or session recording.
    */
-  async requestRecommendation(): Promise<void> {
+  async requestRecommendation(explicitHintType?: EventType): Promise<void> {
     if (!this.session || !this.tracker || !this.timeline) {
       vscode.window.showWarningMessage(
         'No active session. Start a problem first.'
@@ -445,8 +447,16 @@ export class SessionManager {
     this.recommendationError = null;
 
     try {
-      const studentCode =
-        vscode.window.activeTextEditor?.document.getText() ?? '';
+      let studentCode = '';
+      if (this.trackedDocumentUri) {
+        const doc = vscode.workspace.textDocuments.find(
+          (d) => d.uri.toString() === this.trackedDocumentUri
+        );
+        if (doc) studentCode = doc.getText();
+      }
+      if (!studentCode) {
+        studentCode = vscode.window.activeTextEditor?.document.getText() ?? '';
+      }
 
       const snapshot = buildSnapshot(this.session, this.tracker, this.timeline);
       const fullPrediction = await backendClient.predictFull(snapshot);
@@ -454,7 +464,8 @@ export class SessionManager {
         this.session,
         snapshot,
         studentCode,
-        fullPrediction
+        fullPrediction,
+        explicitHintType
       );
       const recommendation = await backendClient.recommend(
         recommendationRequest

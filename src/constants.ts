@@ -28,7 +28,7 @@ export const UI_REFRESH_INTERVAL_MS = 500;
 export const BACKEND_CONFIG_SECTION = 'cognitiveCoach';
 
 /** Fallback backend URL used if the user hasn't configured cognitiveCoach.backendUrl */
-export const DEFAULT_BACKEND_URL = 'http://localhost:8000';
+export const DEFAULT_BACKEND_URL = 'http://127.0.0.1:8000';
 
 /** Max time (ms) to wait for a backend HTTP response before aborting */
 export const BACKEND_REQUEST_TIMEOUT_MS = 10_000;

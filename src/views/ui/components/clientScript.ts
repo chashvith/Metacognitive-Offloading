@@ -158,13 +158,19 @@ export function getClientScript(): string {
       const isRecording = state.status === 'Recording';
       const sections = [
         'sparklineSection', 'recommendationSection', 'eventsSection',
-        'metricsSection', 'sessionControls', 'hintsSection',
+        'metricsSection', 'hintsSection',
         'counterexampleSection', 'endSection'
       ];
       sections.forEach(function(id) {
         const el = document.getElementById(id);
         if (el) el.style.display = isRecording ? 'block' : 'none';
       });
+
+      // Toggle Start/End button states
+      const startBtn = document.getElementById('startBtn');
+      const endBtn = document.getElementById('endBtn');
+      if (startBtn) startBtn.disabled = isRecording;
+      if (endBtn) endBtn.disabled = !isRecording;
 
       if (isRecording) {
         // Analytics

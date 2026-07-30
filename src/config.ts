@@ -12,7 +12,7 @@ import { BACKEND_CONFIG_SECTION, DEFAULT_BACKEND_URL } from './constants';
 
 /**
  * Resolve the FastAPI backend's base URL from the `cognitiveCoach.backendUrl`
- * setting, falling back to http://localhost:8000 if unset.
+ * setting, falling back to http://127.0.0.1:8000 if unset.
  * Trailing slashes are stripped so callers can safely do `${baseUrl}/predict/full`.
  */
 export function getBackendBaseUrl(): string {

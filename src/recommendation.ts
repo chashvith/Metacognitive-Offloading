@@ -93,7 +93,8 @@ export function buildRecommendationRequest(
   session: Session,
   snapshot: SnapshotPayload,
   studentCode: string,
-  fullPrediction: FullPredictResult
+  fullPrediction: FullPredictResult,
+  explicitHintType?: string
 ): RecommendationRequestPayload {
   return {
     problem_name: session.problem_name || 'Unknown Problem',
@@ -104,8 +105,26 @@ export function buildRecommendationRequest(
     student_code: studentCode,
     solver_prediction: fullPrediction.solver.prediction ?? 'Likely to Solve',
     solver_confidence: fullPrediction.solver.confidence ?? 0.5,
-    hint_prediction: fullPrediction.hint.prediction ?? 'No Hint',
+    hint_prediction: mapExplicitHintType(explicitHintType) || (fullPrediction.hint.prediction ?? 'No Hint'),
     hint_confidence: fullPrediction.hint.confidence ?? 0.5,
     snapshot,
   };
 }
+
+function mapExplicitHintType(type?: string): string | null {
+  if (!type) return null;
+  switch (type) {
+    case 'hint1_requested':
+    case 'concept_hint_requested':
+      return 'concept';
+    case 'hint2_requested':
+      return 'guided';
+    case 'pseudocode_requested':
+      return 'pseudocode';
+    case 'solution_requested':
+      return 'full_solution';
+    default:
+      return null;
+  }
+}
+
