@@ -215,6 +215,16 @@ export function getClientScript(): string {
       }
 
       cardEl.style.display = 'flex';
+      
+      // Auto-expand the accordion if collapsed, and scroll into view
+      const parentCard = cardEl.closest('.card');
+      if (parentCard && parentCard.classList.contains('collapsed')) {
+        parentCard.classList.remove('collapsed');
+      }
+      setTimeout(function() {
+         parentCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+
       document.getElementById('recommendationTitle').textContent = rec.title || 'AI Coach Guidance';
 
       const levelBadge = document.getElementById('recommendationLevel');
@@ -249,18 +259,8 @@ export function getClientScript(): string {
 
     /** Enable/Disable AI Action Pills based on ML hint level */
     function updateAiActionButtons(currentLevel) {
-      const levels = ['no_hint', 'concept', 'guided', 'pseudocode', 'full_solution'];
-      const currentIdx = levels.indexOf(currentLevel || 'concept');
-
-      const btnConcept = document.getElementById('btnConcept');
-      const btnGuided = document.getElementById('btnGuided');
-      const btnPseudocode = document.getElementById('btnPseudocode');
-      const btnSolution = document.getElementById('btnSolution');
-
-      if (btnConcept) btnConcept.disabled = currentIdx < 1;
-      if (btnGuided) btnGuided.disabled = currentIdx < 2;
-      if (btnPseudocode) btnPseudocode.disabled = currentIdx < 3;
-      if (btnSolution) btnSolution.disabled = currentIdx < 4;
+      // Intentionally leaving all buttons enabled so the user can
+      // always manually request a specific hint level (which overrides ML).
     }
   `;
 }
